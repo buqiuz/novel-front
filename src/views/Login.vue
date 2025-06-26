@@ -5,7 +5,7 @@
     <div class="userBox cf">
       <div class="user_l">
         <form method="post" action="./login.html" id="form1">
-          <h3>登录小说精品屋</h3>
+          <h3>登录阅界</h3>
           <ul class="log_list">
             <li><span id="LabErr"></span></li>
             <li>

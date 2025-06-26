@@ -3,7 +3,7 @@ const webpack = require("webpack");
 module.exports = defineConfig({
   devServer: {
     // 端口号的配置
-    port: 1024
+    port: 20000
   },
   transpileDependencies: true,
   lintOnSave: false,

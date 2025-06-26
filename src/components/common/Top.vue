@@ -2,7 +2,7 @@
   <div class="topMain">
     <div class="box_center cf">
       <router-link :to="{ name: 'home' }" class="logo fl"
-        ><img :src="logo" alt="小说精品屋"
+        ><img :src="logo" alt="阅界"
       /></router-link>
       <div class="searchBar fl">
         <div class="search cf">

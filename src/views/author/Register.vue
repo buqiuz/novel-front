@@ -20,7 +20,7 @@
           <tr>
             <td colspan="3" style="text-align: left">
               <div style="padding-left: 15px; height: 40px; line-height: 40px">
-                我是网络小说写手，我要注册为小说精品屋签约作者：
+                我是网络小说写手，我要注册为阅界签约作者：
               </div>
             </td>
           </tr>
@@ -66,7 +66,7 @@
             </td>
             <td>
               <span class="notes"> *</span>
-              小说精品屋的编辑会通过这个号码与您联系
+              阅界的编辑会通过这个号码与您联系
             </td>
           </tr>
           <tr>
@@ -88,7 +88,7 @@
             </td>
             <td>
               <span class="notes"> *</span>
-              小说精品屋的编辑会通过这个号码与您联系
+              阅界的编辑会通过这个号码与您联系
             </td>
           </tr>
           <tr>

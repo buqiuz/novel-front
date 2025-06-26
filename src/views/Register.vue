@@ -5,7 +5,7 @@
     <div class="userBox cf">
       <form method="post" action="./register.html" id="form2">
         <div class="user_l">
-          <h3>注册小说精品屋账号</h3>
+          <h3>注册阅界</h3>
           <ul class="log_list">
             <li><span id="LabErr"></span></li>
             <li>
