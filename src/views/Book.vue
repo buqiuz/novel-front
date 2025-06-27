@@ -98,7 +98,7 @@
                       "
                       href="javascript:void(0)"
                       v-if="chapterAbout.chapterInfo"
-                      >{{ chapterAbout.chapterInfo.chapterName }}】</a
+                      >【{{ chapterAbout.chapterInfo.chapterName }}】</a
                     ></span
                   >
                   <span class="black9 fr" v-if="chapterAbout.chapterInfo"

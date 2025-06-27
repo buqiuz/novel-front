@@ -2,272 +2,142 @@
   <div class="header">
     <Top />
   </div>
-  <div id="showDetail">
+
+  <div id="showDetail" :class="themeClass">
     <div class="readBody cf">
       <div class="readMain cf">
         <div class="read_menu">
-          <div
-            class="menu_left"
-            style="background-color: rgba(255, 255, 255, 0.45)"
-          >
+          <div class="menu_left" style="background-color: rgba(255, 255, 255, 0.45)">
             <ul>
               <li>
-                <a
-                  class="ico_catalog"
-                  @click="chapterList(data.chapterInfo.bookId)"
-                  href="javascript:void(0)"
-                  title="目录"
-                >
-                  <b>目录</b></a
-                >
+                <a class="ico_catalog" @click="chapterList(data.chapterInfo.bookId)" href="javascript:void(0)" title="目录"><b>目录</b></a>
+              </li>
+              <li>
+                <a class="ico_page" @click="bookDetail(data.chapterInfo.bookId)" href="javascript:void(0)" title="返回书页"><b>书页</b></a>
+              </li>
+              <li>
+                <a class="ico_setup" href="javascript:void(0);" title="设置" @click="showSettings = true"><b>设置</b></a>
+              </li>
+              <li>
+                <a class="ico_listen" href="javascript:void(0);" title="听书" @click="toggleTTS"><b>{{ isPlaying ? '暂停听书' : '听书' }}</b></a>
               </li>
 
-              <li>
-                <a
-                  class="ico_page"
-                  @click="bookDetail(data.chapterInfo.bookId)"
-                  href="javascript:void(0)"
-                  title="返回书页"
-                  ><b>书页</b></a
-                >
-              </li>
-              <!--
-              <li class="li_shelf" id="cFavs">
-                <a
-                  class="ico_shelf"
-                  href="javascript:void(0);"
-                  title="加入书架"
-                  onclick="javascript:BookDetail.AddFavorites(37,1959973,1);"
-                  ><b>加书架</b></a
-                >
-              </li>
-              <li class="li_shelfed" style="display: none">
-                <a class="ico_shelfed" href="javascript:void(0);" title="已收藏"
-                  ><b>已收藏</b></a
-                >
-              </li>
-
-              <li>
-                <a
-                  class="ico_comment"
-                  href="/book/comment-1334332598936240128.html"
-                  title="评论"
-                >
-                  <b>评论</b></a
-                >
-              </li>
-              <li>
-                <a class="ico_setup" href="javascript:void(0);" title="设置"
-                  ><b>设置</b></a
-                >
-              </li>
-              -->
             </ul>
           </div>
+
           <div class="menu_right" style="position: fixed; bottom: 0">
             <ul>
               <li>
-                <a
-                  class="ico_pagePrev"
-                  href="javascript:enterPreIndexPage('1334332598936240128','0');"
-                  title="上一章"
-                  ><i>上一章</i></a
-                >
+                <a class="ico_pagePrev" href="javascript:void(0);" @click="preChapter(data.chapterInfo.bookId)" title="上一章"><i>上一章</i></a>
               </li>
               <li>
-                <a
-                  class="ico_pageNext"
-                  href="javascript:enterNextIndexPage('1334332598936240128','1334332601092112384');"
-                  title="下一章"
-                  ><i>下一章</i></a
-                >
+                <a class="ico_pageNext" href="javascript:void(0);" @click="nextChapter(data.chapterInfo.bookId)" title="下一章"><i>下一章</i></a>
               </li>
             </ul>
           </div>
         </div>
+
         <div class="readWrap">
           <div class="bookNav"></div>
+
           <div id="readcontent">
-            <div
-              class="textbox cf"
-              style="background-color: rgba(255, 255, 255, 0.45)"
-            >
+            <div class="textbox cf" style="background-color: rgba(255, 255, 255, 0.45)">
               <div class="book_title">
-                <h1 v-if="data.chapterInfo">
-                  {{ data.chapterInfo.chapterName }}
-                </h1>
+                <h1 v-if="data.chapterInfo">{{ data.chapterInfo.chapterName }}</h1>
                 <div class="textinfo" v-if="data.chapterInfo">
-                  类别：{{ data.bookInfo.categoryName }} 作者：<a
-                    href="javascript:searchByK('最终马甲')"
-                    v-if="data.bookInfo"
-                    >{{ data.bookInfo.authorName }}</a
-                  ><span v-if="data.chapterInfo"
-                    >字数：{{ data.chapterInfo.chapterWordCount }}</span
-                  ><span v-if="data.chapterInfo"
-                    >更新时间：{{ data.chapterInfo.chapterUpdateTime }}</span
-                  >
+                  类别：{{ data.bookInfo.categoryName }}
+                  作者：<a href="javascript:void(0)" v-if="data.bookInfo">{{ data.bookInfo.authorName }}</a>
+                  <span>字数：{{ data.chapterInfo.chapterWordCount }}</span>
+                  <span>更新时间：{{ data.chapterInfo.chapterUpdateTime }}</span>
                 </div>
               </div>
 
               <div class="txtwrap">
                 <div
-                  id="showReading"
-                  class="readBox"
-                  style="font-size: 16px; font-family: microsoft yahei;white-space:break-spaces"
-                  v-html="data.bookContent"
+                    id="showReading"
+                    class="readBox"
+                    :style="{
+                    fontSize: fontSize + 'px',
+                    fontFamily: fontFamily,
+                    whiteSpace: 'break-spaces'
+                  }"
+                    v-html="data.bookContent"
                 ></div>
               </div>
             </div>
           </div>
+
           <div class="nextPageBox">
-            <a
-              style="background-color: rgba(255, 255, 255, 0.45)"
-              class="prev"
-              href="javascript:void(0)"
-              @click="preChapter(data.chapterInfo.bookId)"
-              >上一章</a
-            >
-            <a
-              style="background-color: rgba(255, 255, 255, 0.45)"
-              class="dir"
-              @click="chapterList(data.chapterInfo.bookId)"
-              href="javascript:void(0)"
-              >目录</a
-            >
-            <a
-              style="background-color: rgba(255, 255, 255, 0.45)"
-              class="next"
-              @click="nextChapter(data.chapterInfo.bookId)"
-              href="javascript:void(0)"
-              >下一章</a
-            >
+            <a class="prev" href="javascript:void(0)" @click="preChapter(data.chapterInfo.bookId)">上一章</a>
+            <a class="dir" href="javascript:void(0)" @click="chapterList(data.chapterInfo.bookId)">目录</a>
+            <a class="next" href="javascript:void(0)" @click="nextChapter(data.chapterInfo.bookId)">下一章</a>
           </div>
         </div>
       </div>
     </div>
-    <div class="readPopup qrBox" style="display: none">
-      <a
-        class="closePopup"
-        href="javascript:void(0);"
-        onclick="javascript:$('.maskBox,.qrBox').hide();"
-      ></a>
-      <div class="popupTit">
-        <h3>手机阅读</h3>
-      </div>
-      <div class="qrList">
-        <ul></ul>
-      </div>
-    </div>
-    <div class="readPopup setupBox" style="display: none">
-      <a
-        class="closePopup"
-        href="javascript:void(0);"
-        onclick="javascript:$('.maskBox,.setupBox').hide();"
-      ></a>
-      <div class="popupTit">
-        <h3>设置</h3>
-      </div>
+
+    <div class="readPopup setupBox" v-if="showSettings">
+      <a class="closePopup" href="javascript:void(0);" @click="showSettings = false">关闭</a>
+      <div class="popupTit"><h3>设置</h3></div>
+
       <div class="setupList">
         <ul>
           <li class="readTheme">
             <em class="tit">阅读主题：</em>
-            <a
-              id="setup_color_white"
-              class="white current"
-              href="javascript:void(0);"
-              title="白色"
-              onclick="javascript:BookDetail.SetBackUpColor(1);"
-            ></a
-            ><a
-              id="setup_color_green"
-              class="green"
-              href="javascript:void(0);"
-              title="绿色"
-              onclick="javascript:BookDetail.SetBackUpColor(2);"
-            ></a
-            ><a
-              id="setup_color_pink"
-              class="pink"
-              href="javascript:void(0);"
-              title="粉色"
-              onclick="javascript:BookDetail.SetBackUpColor(3);"
-            ></a
-            ><a
-              id="setup_color_yellow"
-              class="yellow"
-              href="javascript:void(0);"
-              title="黄色"
-              onclick="javascript:BookDetail.SetBackUpColor(4);"
-            ></a
-            ><a
-              id="setup_color_gray"
-              class="gray"
-              href="javascript:void(0);"
-              title="灰色"
-              onclick="javascript:BookDetail.SetBackUpColor(5);"
-            ></a
-            ><a
-              id="setup_color_night"
-              class="night"
-              href="javascript:void(0);"
-              title="夜间"
-              onclick="javascript:BookDetail.SetBackUpColor(6);"
-            ></a>
+            <a v-for="color in ['white', 'green', 'pink', 'yellow', 'gray', 'night']" :key="color"
+               :class="[color, themeClass === color ? 'current' : '']"
+               href="javascript:void(0);" @click="setTheme(color)">
+            </a>
           </li>
+
           <li class="setFont setBtn">
             <em class="tit">正文字体：</em>
-            <a
-              id="setup_font_yahei"
-              class="setYahei current"
-              href="javascript:void(0);"
-              onclick="javascript:BookDetail.SetReadFontFamily(0);"
-              >雅黑</a
-            >
-            <a
-              id="setup_font_simsun"
-              class="setSimsun"
-              href="javascript:void(0);"
-              onclick="javascript:BookDetail.SetReadFontFamily(1);"
-              >宋体</a
-            >
-            <a
-              id="setup_font_ks"
-              class="setKs"
-              href="javascript:void(0);"
-              onclick="javascript:BookDetail.SetReadFontFamily(2);"
-              >楷书</a
-            >
+            <a :class="['setYahei', fontFamily === 'microsoft yahei' ? 'current' : '']" href="javascript:void(0)" @click="setFontFamily(0)">雅黑</a>
+            <a :class="['setSimsun', fontFamily === 'simsun' ? 'current' : '']" href="javascript:void(0)" @click="setFontFamily(1)">宋体</a>
+            <a :class="['setKs', fontFamily === 'kaiti' ? 'current' : '']" href="javascript:void(0)" @click="setFontFamily(2)">楷书</a>
           </li>
+
           <li class="fontSize setBtn">
             <em class="tit">字体大小：</em>
-            <a
-              class="small"
-              href="javascript:void(0);"
-              onclick="javascript:BookDetail.SetReadFont(-2);"
-              >A-</a
-            ><span class="current_font" id="cFonts"> 16</span
-            ><a
-              class="big"
-              href="javascript:void(0);"
-              onclick="javascript:BookDetail.SetReadFont(2);"
-              >A+</a
-            >
+            <a class="small" href="javascript:void(0)" @click="setFontSize(-2)">A-</a>
+            <span class="current_font">{{ fontSize }}</span>
+            <a class="big" href="javascript:void(0)" @click="setFontSize(2)">A+</a>
           </li>
         </ul>
       </div>
     </div>
+    <!-- 音色选择弹窗 -->
+    <div class="readPopup ttsVoiceBox" v-if="showVoiceSelector">
+      <a class="closePopup" href="javascript:void(0);" @click="closeVoiceSelector">关闭</a>
+      <div class="popupTit"><h3>选择听书音色</h3></div>
+      <div class="voiceList">
+        <button
+            v-for="voice in voices"
+            :key="voice"
+            :class="['voiceBtn', selectedVoice === voice ? 'active' : '']"
+            @click="selectVoice(voice)"
+        >
+          {{ voice }}
+        </button>
+      </div>
+    </div>
+
   </div>
+  <audio ref="audioPlayer" :src="audioSrc" @ended="isPlaying = false"></audio>
 </template>
 
 <script>
 import "@/assets/styles/book.css";
 import "@/assets/styles/read.css";
-import { reactive, toRefs, onMounted, onBeforeUnmount, onUnmounted } from "vue";
+import { reactive, toRefs, onMounted, onBeforeUnmount, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { getBookContent, getPreChapterId, getNextChapterId } from "@/api/book";
 import { ElMessage } from "element-plus";
 import Top from "@/components/common/Top";
 import Footer from "@/components/common/Footer";
+import { ttsRead } from '@/api/ai';
+import { nextTick } from "vue";  // 确保引入 nextTick
+
 export default {
   name: "bookContent",
   components: {
@@ -277,34 +147,133 @@ export default {
   setup() {
     const route = useRoute();
     const router = useRouter();
+
+    const themeMap = {
+      white: 'read_style_1',
+      green: 'read_style_2',
+      pink: 'read_style_3',
+      yellow: 'read_style_4',
+      gray: 'read_style_5',
+      night: 'read_style_6',
+    };
+    const setTheme = (theme) => {
+      themeClass.value = themeMap[theme] || 'read_style_1';
+    };
+
     const state = reactive({
       data: {},
       imgBaseUrl: process.env.VUE_APP_BASE_IMG_URL,
     });
+
+    // 新增响应式变量
+    const fontSize = ref(16);
+    const fontFamily = ref("microsoft yahei");
+    const themeClass = ref("white");
+    const showSettings = ref(false);
+
+    const setFontSize = (delta) => {
+      const newSize = fontSize.value + delta;
+      if (newSize >= 12 && newSize <= 32) {
+        fontSize.value = newSize;
+      }
+    };
+
+    const setFontFamily = (type) => {
+      if (type === 0) fontFamily.value = "microsoft yahei";
+      else if (type === 1) fontFamily.value = "simsun";
+      else if (type === 2) fontFamily.value = "kaiti";
+    };
+
+    const isPlaying = ref(false);
+    const audioSrc = ref('');
+    const audioPlayer = ref(null);
+
+// 音色列表（全部大写）
+    const voices = ['CHERRY', 'SERENA', 'ETHAN', 'CHELSIE'];
+    const selectedVoice = ref('CHERRY');  // 默认音色
+    const showVoiceSelector = ref(false);
+
+// 关闭音色弹窗
+    const closeVoiceSelector = () => {
+      showVoiceSelector.value = false;
+    };
+
+// 选择音色后开始播放并关闭弹窗
+    const isLoading = ref(false);
+
+    const selectVoice = async (voice) => {
+      if (isLoading.value) return; // 防止重复请求
+      isLoading.value = true;
+      try {
+        selectedVoice.value = voice;
+        showVoiceSelector.value = false;
+
+        if (isPlaying.value) {
+          audioPlayer.value.pause();
+          isPlaying.value = false;
+        }
+
+        await playTTSWithVoice(selectedVoice.value);
+      } catch (err) {
+        ElMessage.error('听书失败，请稍后再试');
+        console.error(err);
+      } finally {
+        isLoading.value = false;
+      }
+    };
+
+
+
+    const playTTSWithVoice = async (voice) => {
+      try {
+        const text = state.data.bookContent?.replace(/<[^>]+>/g, '') || '内容为空';
+
+        const response = await ttsRead({
+          text,
+          voiceType: voice,  // 改成 voiceType
+        });
+
+        // 👇 后端返回的是一个 URL 字符串
+        const url = response.data;
+
+        // 清理旧资源（如果之前是 Blob 创建的）
+        if (audioSrc.value && audioSrc.value.startsWith('blob:')) {
+          URL.revokeObjectURL(audioSrc.value);
+        }
+
+        audioSrc.value = url;
+
+        await nextTick();
+        audioPlayer.value.play();
+        isPlaying.value = true;
+      } catch (err) {
+        ElMessage.error('听书失败，请稍后再试');
+        console.error(err);
+      }
+    };
+
+
+// 修改原 toggleTTS：改为弹出音色选择弹窗
+    const toggleTTS = () => {
+      if (isPlaying.value) {
+        audioPlayer.value.pause();
+        isPlaying.value = false;
+      } else {
+        showVoiceSelector.value = true;
+      }
+    };
+
+
+
     onMounted(() => {
       init(route.params.chapterId);
       console.log("route.params.chapterId:", route.params.chapterId);
       keyDown();
     });
 
-    onBeforeUnmount(async () => {
+    onBeforeUnmount(() => {
       console.log("onBeforeUnmount............");
-
-      document.onkeydown = (e) => {
-        //事件对象兼容
-        let e1 =
-          e || event || window.event || arguments.callee.caller.arguments[0];
-        //键盘按键判断:左箭头-37;上箭头-38；右箭头-39;下箭头-40
-        const bookId = state.data.chapterInfo.bookId;
-        //左
-        if (e1 && e1.keyCode == 37) {
-          // 按下左箭头
-          return;
-        } else if (e1 && e1.keyCode == 39) {
-          // 按下右箭头
-          return;
-        }
-      };
+      document.onkeydown = null; // 清除键盘监听
     });
 
     const bookDetail = (bookId) => {
@@ -340,39 +309,128 @@ export default {
       state.data = data;
     };
 
-    // 监听键盘
+    // 监听键盘左右键翻页
     const keyDown = () => {
       document.onkeydown = (e) => {
-        //事件对象兼容
-        let e1 =
-          e || event || window.event || arguments.callee.caller.arguments[0];
-        //键盘按键判断:左箭头-37;上箭头-38；右箭头-39;下箭头-40
+        let e1 = e || window.event;
+        if (!state.data.chapterInfo) return;
         const bookId = state.data.chapterInfo.bookId;
-        //左
-        if (e1 && e1.keyCode == 37) {
-          // 按下左箭头
+        if (e1.keyCode === 37) {
           preChapter(bookId);
-        } else if (e1 && e1.keyCode == 39) {
-          // 按下右箭头
+        } else if (e1.keyCode === 39) {
           nextChapter(bookId);
         }
       };
     };
 
+
     return {
       ...toRefs(state),
+      fontSize,
+      fontFamily,
+      themeClass,
+      showSettings,
+      setFontSize,
+      setFontFamily,
+      setTheme,
       bookDetail,
       chapterList,
       preChapter,
       nextChapter,
+
+      isPlaying,
+      audioSrc,
+      audioPlayer,
+      toggleTTS,
+      showVoiceSelector,  // <--- 这里一定要加
+      selectVoice,
+      closeVoiceSelector,
+      voices,
+      selectedVoice
     };
+
+
   },
-  mounted() {},
 };
 </script>
 
+
 <style scoped>
 @charset "utf-8";
+
+/* 听书音色选择弹窗 */
+.ttsVoiceBox {
+  width: 320px;
+  margin-left: -160px;
+  margin-top: -140px;
+  padding: 25px 30px 30px 30px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 10000;
+}
+
+/* 标题 */
+.ttsVoiceBox .popupTit h3 {
+  font-weight: 600;
+  font-size: 20px;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+/* 按钮容器：均匀分布 */
+.voiceList {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+/* 单个音色按钮 */
+.voiceBtn {
+  flex: 1 1 70px;
+  max-width: 80px;
+  height: 80px;
+  background-color: #f9f9f9;
+  border: 2px solid #ddd;
+  border-radius: 50%;
+  font-weight: 600;
+  font-size: 12px;
+  color: #555;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 1.2px;
+  user-select: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  padding: 10px;
+  text-transform: uppercase;
+  word-break: break-word;
+  text-align: center;
+  line-height: 1.1;
+}
+
+.voiceBtn:hover {
+  background-color: #ff8c00;
+  border-color: #ff8c00;
+  color: white;
+  box-shadow: 0 4px 12px rgba(255, 140, 0, 0.6);
+}
+
+.voiceBtn.active {
+  background-color: #ff6600;
+  border-color: #ff6600;
+  color: white;
+  box-shadow: 0 0 12px rgba(255, 102, 0, 0.8);
+}
+
+
 a {
   color: #333;
 }
