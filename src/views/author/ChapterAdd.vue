@@ -321,7 +321,7 @@ export default {
         const response = await aiGenerate(action,params)
 
         // 在原有内容后追加生成内容，并实现打字效果
-        const newContent = `\n\n【AI生成内容】${response.data.result}`;
+        const newContent = `\n\n【AI生成内容】${response.data}`;
         state.hasSelection = false;
         state.selectedText = '';
         await typewriterEffect(newContent);
