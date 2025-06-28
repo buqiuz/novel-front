@@ -192,7 +192,7 @@ export default {
         ElMessage.success("短信验证码已发送！");
         startCountdown();
       } catch (err) {
-        ElMessage.error(err?.response?.data?.message || "发送失败，请检查图形验证码");
+        // ElMessage.error(err?.response?.data?.message || "发送失败，请检查图形验证码");
         loadImgVerifyCode(); // 刷新图形验证码
       }
     };
