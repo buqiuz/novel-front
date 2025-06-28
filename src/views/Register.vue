@@ -45,6 +45,23 @@
                 @click="loadImgVerifyCode"
               />
             </li>
+            <li class="log_code cf">
+              <input
+                  v-model="smsCode"
+                  name="TxtSmsCode"
+                  type="text"
+                  maxlength="6"
+                  class="s_input icon_code"
+                  placeholder="请输入短信验证码"
+              />
+              <input
+                  type="button"
+                  class="get_sms_btn"
+                  :disabled="smsSending"
+                  :value="smsSending ? countdown + 's 后重试' : '获取验证码'"
+                  @click="getSmsCode"
+              />
+            </li>
             <li>
               <input
                 type="button"
@@ -111,7 +128,7 @@ import "@/assets/styles/user.css";
 import { reactive, toRefs, onMounted, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { ElMessage } from "element-plus";
-import { getImgVerifyCode } from "@/api/resource";
+import {getImgVerifyCode, sendSmsCode, verifyImgCode} from "@/api/resource";
 import { register } from "@/api/user";
 import { setToken, setNickName, setUid } from "@/utils/auth";
 import Header from "@/components/common/Header";
@@ -132,7 +149,54 @@ export default {
       username: "",
       password: "",
       velCode: "",
+      smsCode: "",
+      smsSending: false,
+      countdown: 60,
     });
+    let timer = null;
+
+    const startCountdown = () => {
+      state.smsSending = true;
+      state.countdown = 60;
+      timer = setInterval(() => {
+        state.countdown--;
+        if (state.countdown <= 0) {
+          clearInterval(timer);
+          state.smsSending = false;
+        }
+      }, 1000);
+    };
+    const getSmsCode = async () => {
+      if (!state.username || !/^1[3-9]\d{9}$/.test(state.username)) {
+        ElMessage.error("请填写正确的手机号码");
+        return;
+      }
+      if (!state.velCode || !/^\d{4}$/.test(state.velCode)) {
+        ElMessage.error("请填写正确的图形验证码");
+        return;
+      }
+
+      try {
+        // 第一步：验证图形验证码
+        await verifyImgCode({
+          sessionId: state.sessionId,
+          code: state.velCode,
+        });
+
+        // 第二步：发送短信验证码
+        const { data } = await sendSmsCode(state.username);
+
+        // 更新 sessionId（短信接口返回新的）
+        state.sessionId = data.sessionId;
+
+        ElMessage.success("短信验证码已发送！");
+        startCountdown();
+      } catch (err) {
+        ElMessage.error(err?.response?.data?.message || "发送失败，请检查图形验证码");
+        loadImgVerifyCode(); // 刷新图形验证码
+      }
+    };
+
     onMounted(async () => {
       loadImgVerifyCode();
     });
@@ -164,7 +228,13 @@ export default {
         ElMessage.error("验证码格式不正确！");
         return;
       }
-      const { data } = await register(state);
+      const { data } = await register({
+        username: state.username,
+        password: state.password,
+        smsCode: state.smsCode,
+        sessionId: state.sessionId, // 这是短信接口返回的新 sessionId
+      });
+
 
       setToken(data.token);
       setUid(data.uid);
@@ -176,6 +246,7 @@ export default {
       ...toRefs(state),
       loadImgVerifyCode,
       registerUser,
+      getSmsCode,
     };
   },
 };
@@ -183,6 +254,23 @@ export default {
 
 
 <style scoped>
+
+.get_sms_btn {
+  margin-left: 15px;
+  margin-top: 5px;
+  padding: 6px 12px;
+  background-color: #ff5a5f;
+  border: none;
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.get_sms_btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
 .avatar-uploader .avatar {
   width: 178px;
   height: 178px;
