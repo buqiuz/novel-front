@@ -224,19 +224,37 @@ export default {
 
 
 
+    const decodeHtmlKeepSpace = (html) => {
+      // 先把 &nbsp; 替换成普通空格
+      const withSpaces = html.replace(/&nbsp;/g, ' ');
+
+      // 再创建 textarea 来解析剩余实体
+      const txt = document.createElement('textarea');
+      txt.innerHTML = withSpaces;
+
+      // 得到解码后的文本（含保留空格）
+      const decoded = txt.value;
+
+      // 去除 HTML 标签（保留空格）
+      return decoded.replace(/<[^>]+>/g, '');
+    };
+
+
     const playTTSWithVoice = async (voice) => {
       try {
-        const text = state.data.bookContent?.replace(/<[^>]+>/g, '') || '内容为空';
+        // 1. 先去除 HTML 标签
+        // let rawText = state.data.bookContent?.replace(/<[^>]+>/g, '') || '内容为空';
+
+        // 2. 解码 HTML 实体（比如 &nbsp; => 空格）
+        const text = decodeHtmlKeepSpace(state.data.bookContent);
 
         const response = await ttsRead({
           text,
-          voiceType: voice,  // 改成 voiceType
+          voiceType: voice,
         });
 
-        // 👇 后端返回的是一个 URL 字符串
         const url = response.data;
 
-        // 清理旧资源（如果之前是 Blob 创建的）
         if (audioSrc.value && audioSrc.value.startsWith('blob:')) {
           URL.revokeObjectURL(audioSrc.value);
         }
@@ -251,6 +269,7 @@ export default {
         console.error(err);
       }
     };
+
 
 
 // 修改原 toggleTTS：改为弹出音色选择弹窗
