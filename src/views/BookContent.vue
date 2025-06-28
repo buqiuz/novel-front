@@ -195,9 +195,16 @@ export default {
       const withSpaces = html.replace(/&nbsp;/g, ' ');
       const txt = document.createElement('textarea');
       txt.innerHTML = withSpaces;
-      const decoded = txt.value;
-      return decoded.replace(/<[^>]+>/g, '');
+      const decoded = txt.value.replace(/<[^>]+>/g, '');
+
+      // 截断到512字符
+      const maxLength = 512;
+      if (decoded.length > maxLength) {
+        return decoded.slice(0, maxLength);
+      }
+      return decoded;
     };
+
 
     async function playAudioQueue() {
       if (audioQueue.length === 0 || isPaused.value) {
