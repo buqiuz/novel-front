@@ -129,7 +129,6 @@
     </div>
 
   </div>
-  <audio ref="audioPlayer" :src="audioSrc" @ended="isPlaying = false"></audio>
 </template>
 
 <script>
@@ -141,8 +140,7 @@ import { getBookContent, getPreChapterId, getNextChapterId } from "@/api/book";
 import { ElMessage } from "element-plus";
 import Top from "@/components/common/Top";
 import Footer from "@/components/common/Footer";
-import { ttsRead } from '@/api/ai';
-import { nextTick } from "vue";  // 确保引入 nextTick
+import {getTTSStreamUrl} from "@/api/ai";
 
 export default {
   name: "bookContent",
@@ -171,131 +169,169 @@ export default {
       imgBaseUrl: process.env.VUE_APP_BASE_IMG_URL,
     });
 
-    // 新增响应式变量
     const fontSize = ref(16);
-    const fontFamily = ref("microsoft yahei");
-    const themeClass = ref("white");
+    const fontFamily = ref('microsoft yahei');
+    const themeClass = ref('white');
     const showSettings = ref(false);
 
-    const setFontSize = (delta) => {
-      const newSize = fontSize.value + delta;
-      if (newSize >= 12 && newSize <= 32) {
-        fontSize.value = newSize;
-      }
-    };
-
-    const setFontFamily = (type) => {
-      if (type === 0) fontFamily.value = "microsoft yahei";
-      else if (type === 1) fontFamily.value = "simsun";
-      else if (type === 2) fontFamily.value = "kaiti";
-    };
-
     const isPlaying = ref(false);
-    const audioSrc = ref('');
-    const audioPlayer = ref(null);
-
-// 音色列表（全部大写）
-    const voices = ['CHERRY', 'SERENA', 'ETHAN', 'CHELSIE'];
-    const selectedVoice = ref('CHERRY');  // 默认音色
     const showVoiceSelector = ref(false);
+    const voices = ['CHERRY', 'SERENA', 'ETHAN', 'CHELSIE'];
+    const selectedVoice = ref('CHERRY');
+    const isPaused = ref(false);
 
-// 关闭音色弹窗
-    const closeVoiceSelector = () => {
-      showVoiceSelector.value = false;
-    };
+    // 新增 Web Audio 播放相关变量
+    let audioContext = null;
+    let audioQueue = [];
+    let currentSource = null;
+    let eventSource = null;
 
-// 选择音色后开始播放并关闭弹窗
-    const isLoading = ref(false);
-
-    const selectVoice = async (voice) => {
-      if (isLoading.value) return; // 防止重复请求
-      isLoading.value = true;
-      try {
-        selectedVoice.value = voice;
-        showVoiceSelector.value = false;
-
-        if (isPlaying.value) {
-          audioPlayer.value.pause();
-          isPlaying.value = false;
-        }
-
-        await playTTSWithVoice(selectedVoice.value);
-      } catch (err) {
-        ElMessage.error('听书失败，请稍后再试');
-        console.error(err);
-      } finally {
-        isLoading.value = false;
-      }
-    };
-
-
+    function updateStatus(msg, color = 'green') {
+      // 你可以通过 showStatus 之类的响应式变量绑定显示状态，这里简化直接用 console
+      console.log(`[TTS Status] ${msg}`);
+    }
 
     const decodeHtmlKeepSpace = (html) => {
-      // 先把 &nbsp; 替换成普通空格
       const withSpaces = html.replace(/&nbsp;/g, ' ');
-
-      // 再创建 textarea 来解析剩余实体
       const txt = document.createElement('textarea');
       txt.innerHTML = withSpaces;
-
-      // 得到解码后的文本（含保留空格）
       const decoded = txt.value;
-
-      // 去除 HTML 标签（保留空格）
       return decoded.replace(/<[^>]+>/g, '');
     };
 
-
-    const playTTSWithVoice = async (voice) => {
-      try {
-        // 1. 先去除 HTML 标签
-        // let rawText = state.data.bookContent?.replace(/<[^>]+>/g, '') || '内容为空';
-
-        // 2. 解码 HTML 实体（比如 &nbsp; => 空格）
-        const text = decodeHtmlKeepSpace(state.data.bookContent);
-
-        const response = await ttsRead({
-          text,
-          voiceType: voice,
-        });
-
-        const url = response.data;
-
-        if (audioSrc.value && audioSrc.value.startsWith('blob:')) {
-          URL.revokeObjectURL(audioSrc.value);
-        }
-
-        audioSrc.value = url;
-
-        await nextTick();
-        audioPlayer.value.play();
-        isPlaying.value = true;
-      } catch (err) {
-        ElMessage.error('听书失败，请稍后再试');
-        console.error(err);
-      }
-    };
-
-
-
-// 修改原 toggleTTS：改为弹出音色选择弹窗
-    const toggleTTS = () => {
-      if (isPlaying.value) {
-        audioPlayer.value.pause();
+    async function playAudioQueue() {
+      if (audioQueue.length === 0 || isPaused.value) {
         isPlaying.value = false;
+        return;
+      }
+
+      isPlaying.value = true; // ✅ 开始播放
+      const buffer = audioQueue.shift();
+
+      try {
+        const audioBuffer = await audioContext.decodeAudioData(buffer);
+        const source = audioContext.createBufferSource();
+        source.buffer = audioBuffer;
+        source.connect(audioContext.destination);
+        source.start();
+
+        currentSource = source;
+
+        source.onended = () => {
+          playAudioQueue();
+        };
+      } catch (e) {
+        updateStatus("播放音频失败: " + e.message, "red");
+        playAudioQueue(); // 尝试继续
+      }
+    }
+
+
+    // 点击“听书”按钮，打开音色弹窗或暂停播放
+    const toggleTTS = () => {
+      if (isPlaying.value && !isPaused.value) {
+        pauseTts();
       } else {
         showVoiceSelector.value = true;
       }
     };
 
+    // 选择音色后开始播放
+    const selectVoice = async (voice) => {
+      if (eventSource) {
+        eventSource.close();
+        eventSource = null;
+      }
+      selectedVoice.value = voice;
+      showVoiceSelector.value = false;
+
+      // 初始化 audioContext
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        await audioContext.resume();
+      }
+
+      audioQueue = [];
+      isPaused.value = false;
+
+      const text = decodeHtmlKeepSpace(state.data.bookContent || '');
+
+      if (!text) {
+        console.warn('文本内容为空，无法播放');
+        return;
+      }
+
+      // 构造 SSE 请求URL，带text和voiceType参数
+      const url = getTTSStreamUrl(text,voice)
+
+      eventSource = new EventSource(url);
+
+      eventSource.addEventListener('audioChunk', async (event) => {
+        try {
+          const base64Data = event.data;
+          const binaryString = atob(base64Data);
+          const len = binaryString.length;
+          const bytes = new Uint8Array(len);
+          for (let i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+
+          audioQueue.push(bytes.buffer);
+          console.log("音频片段已添加到队列，当前队列长度：", audioQueue.length);
+
+          if (!isPlaying.value) {
+            console.log("开始播放音频队列...");
+            await playAudioQueue();
+          }
+
+        } catch (err) {
+          updateStatus("音频解码失败：" + err.message, "red");
+        }
+      });
+
+      eventSource.onopen = () => {
+        updateStatus("连接成功，开始接收数据...");
+      };
+
+      eventSource.onerror = (err) => {
+        updateStatus("连接中断或服务器错误", "red");
+        if (eventSource) {
+          eventSource.close();
+          eventSource = null;
+        }
+      };
+
+    };
+
+    // 暂停播放
+    const pauseTts = () => {
+      isPaused.value = true;
+      isPlaying.value = false;
+      if (currentSource) {
+        try {
+          currentSource.stop();
+        } catch (e) {}
+        currentSource = null;
+      }
+      updateStatus('播放已暂停');
+    };
+
+    // 继续播放
+    const resumeTts = () => {
+      if (!isPaused.value) return;
+      isPaused.value = false;
+      if (!isPlaying.value && audioQueue.length > 0) {
+        playAudioQueue();
+      }
+      updateStatus('播放已继续');
+    };
+
+    // 切换暂停/继续按钮绑定
     const togglePause = () => {
-      if (!audioPlayer.value) return;
-      if (isPlaying.value) {
-        audioPlayer.value.pause();
-        isPlaying.value = false;
+      if (isPaused.value) {
+        resumeTts();
       } else {
-        audioPlayer.value.play();
-        isPlaying.value = true;
+        pauseTts();
       }
     };
 
@@ -311,6 +347,19 @@ export default {
     onBeforeUnmount(() => {
       console.log("onBeforeUnmount............");
       document.onkeydown = null; // 清除键盘监听
+      if (eventSource) {
+        eventSource.close();
+        eventSource = null;
+      }
+      if (currentSource) {
+        try {
+          currentSource.stop();
+        } catch {}
+        currentSource = null;
+      }
+      if (audioContext) {
+        audioContext.close();
+      }
     });
 
     const bookDetail = (bookId) => {
@@ -367,23 +416,35 @@ export default {
       fontFamily,
       themeClass,
       showSettings,
-      setFontSize,
-      setFontFamily,
-      setTheme,
       bookDetail,
       chapterList,
-      preChapter,
-      nextChapter,
-
+      setFontSize: (delta) => {
+        const newSize = fontSize.value + delta;
+        if (newSize >= 12 && newSize <= 32) fontSize.value = newSize;
+      },
+      setFontFamily: (type) => {
+        if (type === 0) fontFamily.value = 'microsoft yahei';
+        else if (type === 1) fontFamily.value = 'simsun';
+        else if (type === 2) fontFamily.value = 'kaiti';
+      },
+      setTheme: (theme) => {
+        const themeMap = {
+          white: 'read_style_1',
+          green: 'read_style_2',
+          pink: 'read_style_3',
+          yellow: 'read_style_4',
+          gray: 'read_style_5',
+          night: 'read_style_6',
+        };
+        themeClass.value = themeMap[theme] || 'read_style_1';
+      },
       isPlaying,
-      audioSrc,
-      audioPlayer,
-      toggleTTS,
-      showVoiceSelector,  // <--- 这里一定要加
-      selectVoice,
-      closeVoiceSelector,
+      showVoiceSelector,
       voices,
       selectedVoice,
+      toggleTTS,
+      selectVoice,
+      closeVoiceSelector: () => (showVoiceSelector.value = false),
       togglePause,
     };
 

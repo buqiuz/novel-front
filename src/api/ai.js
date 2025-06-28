@@ -11,5 +11,8 @@ export function ttsRead(params) {
     });
 }
 
-
+export function getTTSStreamUrl(text, voiceType) {
+    const params = new URLSearchParams({ text, voiceType });
+    return `http://localhost:20001/api/front/ai/tts/qwen/stream?${params.toString()}`;
+}
 
