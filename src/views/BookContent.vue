@@ -119,7 +119,13 @@
         >
           {{ voice }}
         </button>
+
+        <!-- 新增暂停/继续按钮 -->
+        <button class="voiceBtn pauseBtn" @click="togglePause">
+          {{ isPlaying ? '暂停' : '继续' }}
+        </button>
       </div>
+
     </div>
 
   </div>
@@ -282,6 +288,18 @@ export default {
       }
     };
 
+    const togglePause = () => {
+      if (!audioPlayer.value) return;
+      if (isPlaying.value) {
+        audioPlayer.value.pause();
+        isPlaying.value = false;
+      } else {
+        audioPlayer.value.play();
+        isPlaying.value = true;
+      }
+    };
+
+
 
 
     onMounted(() => {
@@ -365,7 +383,8 @@ export default {
       selectVoice,
       closeVoiceSelector,
       voices,
-      selectedVoice
+      selectedVoice,
+      togglePause,
     };
 
 
@@ -376,6 +395,15 @@ export default {
 
 <style scoped>
 @charset "utf-8";
+
+/* 新增暂停按钮  */
+.voiceBtn.pauseBtn {
+  margin-left: 10px;
+  background-color: #f0ad4e;
+  color: white;
+  border-radius: 4px;
+}
+
 
 /* 听书音色选择弹窗 */
 .ttsVoiceBox {
