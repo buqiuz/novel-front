@@ -65,6 +65,10 @@
                 ><a id="my_sex">男<!--<em class="ml10">[修改]</em>--></a>
               </li>
             </ul>
+            <div style="margin-top: 20px;">
+              <el-button type="danger" @click="handleDeleteUser">删除账号</el-button>
+            </div>
+
           </div>
         </div>
       </div>
@@ -82,10 +86,11 @@ import { ElMessage } from "element-plus";
 import { Plus } from "@element-plus/icons-vue";
 import { UploadProps } from "element-plus";
 import { getImgVerifyCode } from "@/api/resource";
-import { getUserinfo, updateUserInfo } from "@/api/user";
+import {deleteUser, getUserinfo, updateUserInfo} from "@/api/user";
 import Header from "@/components/common/Header";
 import Footer from "@/components/common/Footer";
 import UserMenu from "@/components/user/Menu";
+import {removeNickName, removeToken, removeUid} from "@/utils/auth";
 export default {
   name: "userSetup",
   components: {
@@ -103,6 +108,30 @@ export default {
       baseUrl: process.env.VUE_APP_BASE_API_URL,
       imgBaseUrl: process.env.VUE_APP_BASE_IMG_URL,
     });
+    const handleDeleteUser = async () => {
+      try {
+        const confirm = window.confirm("确认删除账号？删除后将无法恢复！");
+        if (!confirm) return;
+
+        const { code, msg } = await deleteUser(); // 发起请求
+        if (code === "00000") {
+          ElMessage.success("账号已删除");
+
+          // 清除登录状态
+          removeToken();
+          removeNickName();
+          removeUid();
+
+          // 跳转到首页或登录页
+          router.push({ name: "home" });
+        } else {
+          ElMessage.error(msg || "删除失败");
+        }
+      } catch (e) {
+        ElMessage.error("请求异常");
+      }
+    };
+
 
     onMounted(async () => {
       const { data } = await getUserinfo();
@@ -131,6 +160,7 @@ export default {
       man,
       beforeAvatarUpload,
       handleAvatarSuccess,
+      handleDeleteUser,
     };
   },
 };
