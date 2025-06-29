@@ -125,7 +125,6 @@
           {{ isPlaying ? '暂停' : '继续' }}
         </button>
       </div>
-
     </div>
 
   </div>
@@ -198,7 +197,7 @@ export default {
       const decoded = txt.value.replace(/<[^>]+>/g, '');
 
       // 截断到512字符
-      const maxLength = 512;
+      const maxLength = 400;
       if (decoded.length > maxLength) {
         return decoded.slice(0, maxLength);
       }
