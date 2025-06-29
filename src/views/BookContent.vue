@@ -139,7 +139,8 @@ import { getBookContent, getPreChapterId, getNextChapterId } from "@/api/book";
 import { ElMessage } from "element-plus";
 import Top from "@/components/common/Top";
 import Footer from "@/components/common/Footer";
-import {getTTSStreamUrl} from "@/api/ai";
+// 修改为
+import { getTTSStreamUrl, getTTSStreamWithPost } from "@/api/ai";
 
 export default {
   name: "bookContent",
@@ -197,7 +198,7 @@ export default {
       const decoded = txt.value.replace(/<[^>]+>/g, '');
 
       // 截断到512字符
-      const maxLength = 400;
+      const maxLength = 512;
       if (decoded.length > maxLength) {
         return decoded.slice(0, maxLength);
       }
@@ -242,12 +243,46 @@ export default {
       }
     };
 
-    // 选择音色后开始播放
     const selectVoice = async (voice) => {
+      // 添加一个全局标志，表示音频处理被中断
+      window.audioProcessingCancelled = true;
+
+      // 等待一小段时间确保所有处理都停止
+      await new Promise(resolve => setTimeout(resolve, 100));
+      // 重置标志
+      window.audioProcessingCancelled = false;
+
+      // 停止当前正在播放的音频源
+      if (currentSource) {
+        try {
+          currentSource.stop();
+          currentSource.disconnect();
+          currentSource = null;
+        } catch (err) {
+          console.error("停止音频播放失败:", err);
+        }
+      }
+      // 关闭之前的 EventSource 连接
       if (eventSource) {
         eventSource.close();
         eventSource = null;
       }
+      // 如果存在，关闭并重新创建 audioContext
+      if (audioContext) {
+        try {
+          await audioContext.close();
+        } catch (e) {
+          console.error("关闭音频上下文失败:", e);
+        }
+        audioContext = null;
+      }
+      // 创建新的音频上下文
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      // 重置状态
+      audioQueue = [];
+      isPlaying.value = false;
+      isPaused.value = false;
+
       selectedVoice.value = voice;
       showVoiceSelector.value = false;
 
@@ -255,10 +290,9 @@ export default {
       if (!audioContext) {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
         await audioContext.resume();
+      } else if (audioContext.state === 'suspended') {
+        await audioContext.resume();
       }
-
-      audioQueue = [];
-      isPaused.value = false;
 
       const text = decodeHtmlKeepSpace(state.data.bookContent || '');
 
@@ -267,46 +301,75 @@ export default {
         return;
       }
 
-      // 构造 SSE 请求URL，带text和voiceType参数
-      const url = getTTSStreamUrl(text,voice)
+      try {
+        updateStatus("正在连接服务器...");
 
-      eventSource = new EventSource(url);
+        // 直接调用合并后的函数
+        const response = await getTTSStreamWithPost(text, voice);
 
-      eventSource.addEventListener('audioChunk', async (event) => {
-        try {
-          const base64Data = event.data;
-          const binaryString = atob(base64Data);
-          const len = binaryString.length;
-          const bytes = new Uint8Array(len);
-          for (let i = 0; i < len; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-          }
-
-          audioQueue.push(bytes.buffer);
-          console.log("音频片段已添加到队列，当前队列长度：", audioQueue.length);
-
-          if (!isPlaying.value) {
-            console.log("开始播放音频队列...");
-            await playAudioQueue();
-          }
-
-        } catch (err) {
-          updateStatus("音频解码失败：" + err.message, "red");
+        if (!response.ok) {
+          throw new Error(`服务器响应错误: ${response.status}`);
         }
-      });
 
-      eventSource.onopen = () => {
-        updateStatus("连接成功，开始接收数据...");
-      };
+        // 创建文本解码器处理 SSE 事件
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
 
-      eventSource.onerror = (err) => {
-        updateStatus("连接中断或服务器错误", "red");
-        if (eventSource) {
-          eventSource.close();
-          eventSource = null;
+        // 处理流数据
+        while (!window.audioProcessingCancelled) {
+          // 检查是否被中断
+
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          // 累积并解析文本
+          buffer += decoder.decode(value, { stream: true });
+
+          // 处理事件流格式 (event: eventName\ndata: base64Data\n\n)
+          const events = buffer.split('\n\n');
+          buffer = events.pop() || ''; // 保留最后一个不完整的事件
+
+          for (const event of events) {
+            const lines = event.split('\n');
+            let eventName = '';
+            let eventData = '';
+
+            for (const line of lines) {
+              if (line.startsWith('event:')) {
+                eventName = line.slice(6).trim();
+              } else if (line.startsWith('data:')) {
+                eventData = line.slice(5).trim();
+              }
+            }
+
+            // 处理音频块事件
+            if (eventName === 'audioChunk' && eventData) {
+              try {
+                const base64Data = eventData;
+                const binaryString = atob(base64Data);
+                const len = binaryString.length;
+                const bytes = new Uint8Array(len);
+                for (let i = 0; i < len; i++) {
+                  bytes[i] = binaryString.charCodeAt(i);
+                }
+
+                audioQueue.push(bytes.buffer);
+                console.log("音频片段已添加到队列，当前队列长度：", audioQueue.length);
+
+                if (!isPlaying.value) {
+                  console.log("开始播放音频队列...");
+                  await playAudioQueue();
+                }
+              } catch (err) {
+                updateStatus("音频解码失败：" + err.message, "red");
+              }
+            }
+          }
         }
-      };
-
+      } catch (error) {
+        updateStatus(`连接失败: ${error.message}`, "red");
+      }
     };
 
     // 暂停播放

@@ -22,4 +22,28 @@ export function getTTSStreamUrl(text, voiceType) {
     // 直接代理给后端127.0.0.1:8888
     return `${state.baseUrl}/front/ai/tts/qwen/stream?${params.toString()}`;
 }
+export async function getTTSStreamWithPost(text, voiceType) {
+    const url = `${state.baseUrl}/front/ai/tts/qwen/stream-post`;
+    const data = { text, voiceType };
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'text/event-stream'
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            throw new Error(`服务器响应错误: ${response.status}`);
+        }
+
+        return response;
+    } catch (error) {
+        console.error("TTS请求失败:", error);
+        throw error;
+    }
+}
 
