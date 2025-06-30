@@ -1,4 +1,7 @@
 <template>
+  <!-- 在组件顶部添加引入 -->
+  <el-icon><Document /></el-icon>
+  <el-icon><Delete /></el-icon>
   <AuthorHeader />
   <div class="main box_center cf">
     <div class="userBox cf">
@@ -64,8 +67,14 @@
                   <td class="goread">{{ item.updateTime }} 更新</td>
                   <td class="goread" valsc="291|2037554|1">{{ wordCountFormat(item.wordCount) }}</td>
                   <td class="goread" id="opt1431636515973345292">
-                    <router-link class="redBtn" :to="{'name':'authorChapterList','query':{'id':item.id}}">章节管理</router-link>
-                    
+                    <div class="action-buttons">
+                      <router-link class="redBtn" :to="{'name':'authorChapterList','query':{'id':item.id}}">
+                        章节管理
+                      </router-link>
+                      <a class="delBtn" href="javascript:void(0)" @click="confirmDelete(item.id, item.bookName)">
+                        删除
+                      </a>
+                    </div>
                   </td>
                 </tr>
               </tbody>
@@ -121,11 +130,15 @@
 import "@/assets/styles/book.css";
 import { reactive, toRefs, onMounted, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { listBooks } from "@/api/author";
 import AuthorHeader from "@/components/author/Header.vue";
+import { listBooks, deleteBook } from "@/api/author";
+import { Document, Delete } from '@element-plus/icons-vue'
+import { ElMessageBox, ElMessage } from 'element-plus';
 export default {
   name: "authorBookList",
   components: {
+    Document,
+    Delete,
     AuthorHeader,
   },
   setup() {
@@ -144,6 +157,36 @@ export default {
       load();
     });
 
+    // 在 setup 函数中添加删除确认方法
+    const confirmDelete = (bookId, bookName) => {
+      ElMessageBox.confirm(
+        `确定要删除《${bookName}》吗？删除后无法恢复！`,
+        '删除确认',
+        {
+          confirmButtonText: '确定删除',
+          cancelButtonText: '取消',
+          type: 'warning',
+        }
+      )
+        .then(() => {
+          deleteBook(bookId).then(() => {
+            ElMessage({
+              type: 'success',
+              message: '删除成功',
+            });
+            load(); // 重新加载数据
+          }).catch(error => {
+            ElMessage({
+              type: 'error',
+              message: '删除失败：' + error.message,
+            });
+          });
+        })
+        .catch(() => {
+          // 用户取消删除，不做操作
+        });
+    };
+
     const load = async () => {
       const { data } = await listBooks(state.searchCondition);
       state.books = data.list;
@@ -161,6 +204,7 @@ export default {
       ...toRefs(state),
       handleCurrentChange,
       load,
+      confirmDelete,
     };
   },
   computed: {
@@ -192,15 +236,59 @@ export default {
 </style>
 
 <style scoped>
+/* 操作按钮样式优化 */
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.redBtn, .delBtn {
+  padding: 3px 8px; /* 减小内边距使按钮更小 */
+  border-radius: 10px; /* 更圆润的边角 */
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.3s;
+  text-align: center;
+  line-height: 2.5; /* 确保行高正常 */
+}
+
 .redBtn {
-  padding: 5px;
-  border-radius: 20px;
   border: 1px solid #f80;
   background: #f80;
   color: #fff;
 }
-a.redBtn:hover {
+
+.delBtn {
+  border: 1px solid #ff4040;
+  background: #ff4040;
   color: #fff;
+}
+
+a.redBtn:hover {
+  background: #ff9900;
+  color: #fff;
+  box-shadow: 0 2px 4px rgba(255, 136, 0, 0.3);
+}
+
+a.delBtn:hover {
+  background: #ff5555;
+  color: #fff;
+  box-shadow: 0 2px 4px rgba(255, 64, 64, 0.3);
+}
+
+/* 适配移动端显示 */
+@media screen and (max-width: 768px) {
+  .action-buttons {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .redBtn, .delBtn {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 .avatar-uploader .avatar {

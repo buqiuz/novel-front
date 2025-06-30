@@ -48,3 +48,6 @@ export function getChapter(id) {
 export function updateChapter(id,params) {
     return request.put(`/author/book/chapter/${id}`,params);
 }
+export function deleteBook(bookId) {
+  return request.delete(`/author/book/${bookId}`);
+}
