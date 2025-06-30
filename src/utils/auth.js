@@ -5,6 +5,8 @@ const nickNameKey = 'nickName'
 
 const uidKey = 'uid'
 
+const goldCoinKey = 'goldCoin';
+
 
 export const getToken = () => {
     return localStorage.getItem(TokenKey);
@@ -23,6 +25,7 @@ export const removeNickName = () =>  {
 }
 
 export const setNickName = (nickName) => {
+  console.log('setNickName', nickName)
   return localStorage.setItem(nickNameKey, nickName)
 }
 
@@ -41,4 +44,16 @@ export const getUid = () => {
 export const removeUid = () =>  {
   return localStorage.removeItem(uidKey)
 }
+
+export const setGoldCoin = (goldCoin) => {
+  return localStorage.setItem(goldCoinKey, goldCoin);
+};
+
+export const getGoldCoin = () => {
+  return localStorage.getItem(goldCoinKey);
+};
+
+export const removeGoldCoin = () => {
+  return localStorage.removeItem(goldCoinKey);
+};
 

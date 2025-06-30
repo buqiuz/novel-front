@@ -184,7 +184,6 @@ export default {
     let audioContext = null;
     let audioQueue = [];
     let currentSource = null;
-    let eventSource = null;
 
     function updateStatus(msg, color = 'green') {
       // 你可以通过 showStatus 之类的响应式变量绑定显示状态，这里简化直接用 console
@@ -243,14 +242,20 @@ export default {
       }
     };
 
+    let audioProcessingCancelled = false;
     const selectVoice = async (voice) => {
       // 添加一个全局标志，表示音频处理被中断
-      window.audioProcessingCancelled = true;
+      audioProcessingCancelled = true;
 
       // 等待一小段时间确保所有处理都停止
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 500));
       // 重置标志
-      window.audioProcessingCancelled = false;
+      audioProcessingCancelled = false;
+
+      // 重置状态
+      audioQueue = [];
+      isPlaying.value = false;
+      isPaused.value = false;
 
       // 停止当前正在播放的音频源
       if (currentSource) {
@@ -261,11 +266,6 @@ export default {
         } catch (err) {
           console.error("停止音频播放失败:", err);
         }
-      }
-      // 关闭之前的 EventSource 连接
-      if (eventSource) {
-        eventSource.close();
-        eventSource = null;
       }
       // 如果存在，关闭并重新创建 audioContext
       if (audioContext) {
@@ -278,10 +278,6 @@ export default {
       }
       // 创建新的音频上下文
       audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      // 重置状态
-      audioQueue = [];
-      isPlaying.value = false;
-      isPaused.value = false;
 
       selectedVoice.value = voice;
       showVoiceSelector.value = false;
@@ -317,9 +313,12 @@ export default {
         let buffer = '';
 
         // 处理流数据
-        while (!window.audioProcessingCancelled) {
+        while (true) {
           // 检查是否被中断
-
+          if(audioProcessingCancelled){
+            console.log("音频处理被取消，停止处理事件");
+            break;
+          }
           const { done, value } = await reader.read();
           if (done) break;
 
@@ -331,6 +330,10 @@ export default {
           buffer = events.pop() || ''; // 保留最后一个不完整的事件
 
           for (const event of events) {
+            if(audioProcessingCancelled){
+              console.log("音频处理被取消，停止处理事件");
+              break;
+            }
             const lines = event.split('\n');
             let eventName = '';
             let eventData = '';
@@ -404,9 +407,6 @@ export default {
       }
     };
 
-
-
-
     onMounted(() => {
       init(route.params.chapterId);
       console.log("route.params.chapterId:", route.params.chapterId);
@@ -416,10 +416,6 @@ export default {
     onBeforeUnmount(() => {
       console.log("onBeforeUnmount............");
       document.onkeydown = null; // 清除键盘监听
-      if (eventSource) {
-        eventSource.close();
-        eventSource = null;
-      }
       if (currentSource) {
         try {
           currentSource.stop();
