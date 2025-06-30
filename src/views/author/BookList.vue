@@ -1,7 +1,4 @@
 <template>
-  <!-- 在组件顶部添加引入 -->
-  <el-icon><Document /></el-icon>
-  <el-icon><Delete /></el-icon>
   <AuthorHeader />
   <div class="main box_center cf">
     <div class="userBox cf">
@@ -132,13 +129,10 @@ import { reactive, toRefs, onMounted, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import AuthorHeader from "@/components/author/Header.vue";
 import { listBooks, deleteBook } from "@/api/author";
-import { Document, Delete } from '@element-plus/icons-vue'
 import { ElMessageBox, ElMessage } from 'element-plus';
 export default {
   name: "authorBookList",
   components: {
-    Document,
-    Delete,
     AuthorHeader,
   },
   setup() {
