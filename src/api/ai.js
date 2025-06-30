@@ -11,6 +11,21 @@ export function ttsRead(params) {
         timeout: 60000
     });
 }
+export async function textToImage(text,config = {}) {
+    console.log("请求的文本内容:", text); // 打印请求的文本内容
+    const defaultConfig = {
+        timeout: 60000
+    };
+    return request.post('/front/ai/textToImage', text, defaultConfig);
+}
+
+export async function pngToJpg(url,config = {}) {
+    console.log("url:", url); // 打印请求的文本内容
+    const defaultConfig = {
+        timeout: 60000
+    };
+    return request.post('/front/ai/pngToJpg', url, defaultConfig);
+}
 
 const state = reactive({
     baseUrl: process.env.VUE_APP_BASE_API_URL,
