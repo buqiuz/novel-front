@@ -1,8 +1,7 @@
-<template>
+yarn<template>
   <div class="header">
     <Top />
   </div>
-
   <div id="showDetail" :class="themeClass">
     <div class="readBody cf">
       <div class="readMain cf">
@@ -126,7 +125,20 @@
         </button>
       </div>
     </div>
+    <!-- 解锁章节提示弹窗 -->
+    <div class="readPopup unlockChapterBox" v-if="showUnlockDialog">
+      <div class="popupTit"><h3>解锁章节</h3></div>
+      <div class="unlockContent">
+        <p>该章节为付费内容，请购买后继续阅读。</p>
+        <div class="btns">
+          <a href="javascript:void(0)" class="buyBtn" @click="handleBuyChapter()">立即购买</a>
+          <a href="javascript:void(0)" class="cancelBtn" @click="goToChapterList(data.chapterInfo.bookId)">取消</a>
+        </div>
+      </div>
+    </div>
 
+    <!-- 遮罩层 -->
+    <div class="maskBox" v-if="showUnlockDialog"></div>
   </div>
 </template>
 
@@ -135,12 +147,14 @@ import "@/assets/styles/book.css";
 import "@/assets/styles/read.css";
 import { reactive, toRefs, onMounted, onBeforeUnmount, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { getBookContent, getPreChapterId, getNextChapterId } from "@/api/book";
+import {getBookContent, getPreChapterId, getNextChapterId, unlockChapter} from "@/api/book";
 import { ElMessage } from "element-plus";
 import Top from "@/components/common/Top";
 import Footer from "@/components/common/Footer";
 // 修改为
 import { getTTSStreamUrl, getTTSStreamWithPost } from "@/api/ai";
+import { getUid } from "@/utils/auth";
+import { checkChapterUnlock } from "@/api/book"
 
 export default {
   name: "bookContent",
@@ -179,6 +193,7 @@ export default {
     const voices = ['CHERRY', 'SERENA', 'ETHAN', 'CHELSIE'];
     const selectedVoice = ref('CHERRY');
     const isPaused = ref(false);
+    const showUnlockDialog = ref(false);
 
     // 新增 Web Audio 播放相关变量
     let audioContext = null;
@@ -407,8 +422,37 @@ export default {
       }
     };
 
-    onMounted(() => {
-      init(route.params.chapterId);
+    const goToChapterList = (bookId) => {
+      console.log("goToChapterList：", bookId);
+      if (bookId) {
+        showUnlockDialog.value = false;  // 关闭弹窗
+        document.body.style.overflow = ''; // 恢复滚动
+        router.push({ path: `/chapter_list/${bookId}` });
+      } else {
+        ElMessage.error("无法获取书籍 ID");
+      }
+    };
+
+    onMounted(async () => {
+      const chapterId = route.params.chapterId;
+      const userId = getUid();
+      if(!userId){
+        ElMessage.warning("请先登录！");
+        router.push({ path: '/login' });
+        return;
+      }
+      try{
+        const res = await checkChapterUnlock(userId, chapterId);
+        if(!res.data){
+          document.body.style.overflow = 'hidden'; // 禁止滚动
+          showUnlockDialog.value = true;
+
+        }
+      } catch (error) {
+        ElMessage.error("网络异常，请稍后再试");
+        console.error(error);
+      }
+      await init(route.params.chapterId);
       console.log("route.params.chapterId:", route.params.chapterId);
       keyDown();
     });
@@ -426,6 +470,23 @@ export default {
         audioContext.close();
       }
     });
+
+    const handleBuyChapter = async () => {
+      const userId = getUid();
+      try{
+        const res = await unlockChapter(userId, route.params.chapterId,50);
+        if(res.data==='1'){
+          location.reload(); // 强制刷新页面（不推荐频繁使用）
+        }
+        else{
+          //余额不足，启动充值弹窗
+        }
+      }catch (error) {
+        ElMessage.error("网络异常，请稍后再试");
+        console.error(error);
+      }
+    };
+
 
     const bookDetail = (bookId) => {
       router.push({ path: `/book/${bookId}` });
@@ -477,6 +538,9 @@ export default {
 
     return {
       ...toRefs(state),
+      showUnlockDialog,
+      handleBuyChapter,
+      goToChapterList,
       fontSize,
       fontFamily,
       themeClass,
@@ -521,6 +585,62 @@ export default {
 
 <style scoped>
 @charset "utf-8";
+
+/* 解锁章节弹窗 */
+.unlockChapterBox {
+  width: 400px;
+  margin-left: -200px;
+  margin-top: -150px;
+  z-index: 10001;
+}
+
+.unlockChapterBox .popupTit h3 {
+  font-size: 18px;
+  margin-bottom: 15px;
+}
+
+.unlockContent {
+  padding: 0 30px 30px;
+  text-align: center;
+}
+
+.unlockContent p {
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 25px;
+}
+
+.unlockContent .btns a {
+  display: inline-block;
+  width: 120px;
+  height: 40px;
+  line-height: 40px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.buyBtn {
+  background-color: #f80;
+  color: #fff;
+  margin-right: 20px;
+}
+
+.buyBtn:hover {
+  background-color: #f70;
+}
+
+.cancelBtn {
+  color: #999;
+  border: 1px solid #ccc;
+  background-color: #fff;
+}
+
+.cancelBtn:hover {
+  color: #333;
+  border-color: #999;
+}
+
 
 /* 新增暂停按钮  */
 .voiceBtn.pauseBtn {
@@ -766,13 +886,13 @@ body,
 .readMain {
   margin: 0 auto;
   position: relative;
-  z-index: 3;
+  z-index: auto;
   width: 900px;
 }
 /* 左右菜单栏 */
 .menu_left {
   width: 60px;
-  z-index: 20;
+  z-index: auto;
   position: absolute;
   top: 60px;
   left: 50%;
@@ -780,7 +900,7 @@ body,
 }
 .menu_right {
   width: 60px;
-  z-index: 20;
+  z-index: auto;
   position: absolute;
   bottom: 81px;
   right: 50%;
@@ -881,6 +1001,7 @@ body,
   padding-bottom: 40px;
   box-shadow: 0 0 1px 0 rgba(0, 0, 0, 0.25);
   color: #111;
+  z-index: auto;
 }
 .bookNav {
   width: 99%;
@@ -934,11 +1055,13 @@ body,
   padding: 10px 0 60px; /*min-height: 469px;*/
   word-wrap: break-word;
   word-break: break-word;
+  z-index: auto;
 }
 .readBox p {
   line-height: 2;
   margin-top: 1em;
   text-indent: 2em;
+  z-index: auto;
 }
 .orderBox {
   width: 90%;
