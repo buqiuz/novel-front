@@ -128,18 +128,36 @@ yarn<template>
     </div>
     <!-- 解锁章节提示弹窗 -->
     <div class="readPopup unlockChapterBox" v-if="showUnlockDialog">
-      <div class="popupTit"><h3>解锁章节</h3></div>
+      <div class="popupTit">
+        <h3>付费章节提示</h3>
+      </div>
       <div class="unlockContent">
-        <p>该章节为付费内容，请购买后继续阅读。</p>
+        <p>解锁本章：50书币</p>
+        <p>购买后立即阅读后续精彩内容!</p>
         <div class="btns">
           <a href="javascript:void(0)" class="buyBtn" @click="handleBuyChapter()">立即购买</a>
           <a href="javascript:void(0)" class="cancelBtn" @click="goToChapterList(data.chapterInfo.bookId)">取消</a>
         </div>
       </div>
     </div>
+    <!-- 余额不足提示弹窗 -->
+    <div class="readPopup rechargeDialog" v-if="showRechargeDialog">
+      <div class="popupTit">
+        <h3>余额不足</h3>
+      </div>
+      <div class="rechargeContent">
+        <p>书币不够啦~</p>
+        <p>去充值可立即阅读精彩内容！</p>
+        <div class="btns">
+          <a href="javascript:void(0)" class="buyBtn" @click="goToPayPage(data.chapterInfo.bookId)">立即充值</a>
+          <a href="javascript:void(0)" class="cancelBtn" @click="goToChapterList(data.chapterInfo.bookId)">取消</a>
+        </div>
+      </div>
+    </div>
+
 
     <!-- 遮罩层 -->
-    <div class="maskBox" v-if="showUnlockDialog"></div>
+    <div class="maskBox" v-if="showUnlockDialog||showRechargeDialog"></div>
   </div>
 </template>
 
@@ -466,16 +484,27 @@ export default {
       const userId = getUid();
       try{
         const res = await unlockChapter(userId, route.params.chapterId, 50);
+        console.log("解锁结果：", res);
         if(res.data==='1'){
           location.reload(); // 强制刷新页面（不推荐频繁使用）
         }
         else{
           //余额不足，启动充值弹窗
+          showUnlockDialog.value = false;  // 关闭弹窗
+          showRechargeDialog.value = true;
         }
       }catch (error) {
         ElMessage.error("网络异常，请稍后再试");
         console.error(error);
       }
+    };
+    const showRechargeDialog = ref(false); // 控制显示余额不足弹窗
+
+// 跳转到支付页面（根据你的路由配置修改）
+    const goToPayPage = (bookId) => {
+      showRechargeDialog.value = false;
+      document.body.style.overflow = ''; // 恢复滚动
+      router.push({name:'payment'});
     };
 
 
@@ -545,6 +574,8 @@ export default {
     return {
       ...toRefs(state),
       showUnlockDialog,
+      showRechargeDialog,
+      goToPayPage,
       handleBuyChapter,
       goToChapterList,
       nextChapter,
@@ -595,6 +626,42 @@ export default {
 <style scoped>
 @charset "utf-8";
 
+/* 余额不足弹窗 */
+.rechargeDialog {
+  width: 400px;
+  margin-left: -200px;
+  margin-top: -150px;
+  z-index: 10001;
+}
+
+.rechargeDialog .popupTit h3 {
+  font-size: 18px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.rechargeContent {
+  padding: 0 30px 30px;
+  text-align: center;
+}
+
+.rechargeContent p {
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.rechargeContent .btns a {
+  display: inline-block;
+  width: 120px;
+  height: 40px;
+  line-height: 40px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+
 /* 解锁章节弹窗 */
 .unlockChapterBox {
   width: 400px;
@@ -606,6 +673,7 @@ export default {
 .unlockChapterBox .popupTit h3 {
   font-size: 18px;
   margin-bottom: 15px;
+  text-align: center; /* 居中显示标题 */
 }
 
 .unlockContent {
@@ -616,9 +684,11 @@ export default {
 .unlockContent p {
   font-size: 16px;
   color: #333;
-  margin-bottom: 25px;
+  margin-bottom: 15px;
 }
-
+.unlockContent p:first-of-type {
+  color: #f80; /* 设置“解锁本章：50书币”颜色为 #f80 */
+}
 .unlockContent .btns a {
   display: inline-block;
   width: 120px;
