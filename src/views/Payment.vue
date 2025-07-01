@@ -164,6 +164,7 @@ export default {
       fixedAmounts: [10, 20, 30, 50, 100, 200, 365, 500, 1000, 2000, 3000, 5000, 8888, 10000, 100000],
       selectedAmount: null,
       customAmount: null,
+      baseurl:process.env.VUE_APP_BASE_API_URL,
       userId: null,
     });
 
@@ -198,7 +199,8 @@ export default {
       // 构造表单并自动提交
       const form = document.createElement("form");
       form.method = "POST";
-      form.action = "http://127.0.0.1:20010/api/front/payment/toPay";
+      // form.action = "http://127.0.0.1:20010/api/front/payment/toPay";
+      form.action = state.baseurl+"/front/payment/toPay";
 
       const inputUserId = document.createElement("input");
       inputUserId.type = "hidden";

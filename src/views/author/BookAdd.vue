@@ -6,8 +6,7 @@
         <ul class="log_list">
           <li>            <router-link class="link_4 on" :to="{'name':'authorBookList'}">小说管理</router-link>
 </li>
-          <!--<li><a class="link_1 " href="/user/userinfo.html">批量小说爬取</a></li>
-<li><a class="link_4 " href="/user/favorites.html">单本小说爬取</a></li>-->
+
         </ul>
       </div>
       <div class="my_r">
@@ -70,10 +69,29 @@
                         "
                         class="avatar"
                       />
+                      <div class="cover-actions">
+                        <el-button 
+                          type="primary" 
+                          size="small" 
+                          @click.stop="showPromptDialog"
+                        >
+                          <i class="el-icon-magic-stick"></i> AI生成封面
+                        </el-button>
+                      </div>
                     </el-upload>
+                    <div v-if="aiCoverUrl" class="ai-cover-preview">
+                      <el-image :src="aiCoverUrl" fit="cover"></el-image>
+                      <div class="ai-cover-actions">
+                        <el-button type="success" size="small" @click="applyAiCover">
+                          <i class="el-icon-check"></i> 使用此封面
+                        </el-button>
+                        <el-button type="info" size="small" @click="cancelAiCover">
+                          <i class="el-icon-close"></i> 取消
+                        </el-button>
+                      </div>
+                    </div>
                   </li>
                   <b>小说介绍：</b>
-
                   <li>
                     <textarea
                       v-model="book.bookDesc"
@@ -99,40 +117,45 @@
               </div>
             </form>
           </div>
-          <!--<div id="divData" class="updateTable">
-                    <table cellpadding="0" cellspacing="0">
-                        <thead>
-                        <tr>
 
-                            <th class="name">
-                                爬虫源（已开启的爬虫源）
-                            </th>
-                            <th class="chapter">
-                                成功爬取数量（websocket实现）
-                            </th>
-                            <th class="time">
-                            目标爬取数量
-                            </th>
-                            <th class="goread">
-                                状态（正在运行，已停止）（一次只能运行一个爬虫源）
-                            </th>
-                            <th class="goread">
-                                操作（启动，停止）
-                            </th>
-                        </tr>
-                        </thead>
-                        <tbody id="bookShelfList">
-
-
-
-                        </tbody>
-                    </table>
-                    <div class="pageBox cf" id="shellPage">
-                    </div>
-                </div>-->
         </div>
       </div>
     </div>
+<!-- 提示词输入对话框 -->
+    <el-dialog
+      v-model="promptDialogVisible"
+      title="AI封面生成提示"
+      width="40%"
+      :before-close="handlePromptDialogClose"
+    >
+      <div>
+        <p>请输入生成封面的描述提示：</p>
+        <el-input
+          v-model="coverPrompt"
+          type="textarea"
+          :rows="5"
+          placeholder="例如：精美小说封面，仙侠风格，主角身穿白衣手持长剑，背景有山水云雾，8k高清"
+        ></el-input>
+        <div class="prompt-tips">
+          <h4>提示词建议：</h4>
+          <ul>
+            <li>描述封面风格（如：水墨、插画、写实、卡通等）</li>
+            <li>描述主角特征（如：黑衣剑客、红衣少女等）</li>
+            <li>描述场景（如：雪山之巅、竹林深处、都市夜景等）</li>
+            <li>指定画质（如：8k高清、超精细细节等）</li>
+          </ul>
+        </div>
+      </div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="promptDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="generateCover" :loading="isGenerating">
+            生成封面
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
+
   </div>
 </template>
 
@@ -143,6 +166,7 @@ import { useRouter, useRoute } from "vue-router";
 import { ElMessage } from "element-plus";
 import { publishBook } from "@/api/author";
 import { listCategorys } from "@/api/book";
+import {pngToJpg, textToImage} from "@/api/ai"; // 确保正确导入textToImage函数
 import AuthorHeader from "@/components/author/Header.vue";
 import picUpload from "@/assets/images/pic_upload.png";
 export default {
@@ -159,6 +183,10 @@ export default {
       bookCategorys: [],
       baseUrl: process.env.VUE_APP_BASE_API_URL,
       imgBaseUrl: process.env.VUE_APP_BASE_IMG_URL,
+      isGenerating: false,
+      aiCoverUrl: null,
+      promptDialogVisible: false,
+      coverPrompt: ''
     });
 
     onMounted(() => {
@@ -178,6 +206,7 @@ export default {
 
     const handleAvatarSuccess = (response, uploadFile) => {
       state.book.picUrl = response.data;
+      state.aiCoverUrl = null; // 清除AI生成的封面预览
     };
 
     const loadCategoryList = async () => {
@@ -197,13 +226,78 @@ export default {
       });
     }
 
+    // 显示提示词输入对话框
+    const showPromptDialog = () => {
+      // 自动生成默认提示词
+      state.coverPrompt = `小说封面，标题：${state.book.bookName || ''}，类型：${state.book.categoryName || ''}，${
+        state.book.workDirection == 0 ? '男频' : '女频'
+      }，风格：精美插画，高清，8k`;
+      
+      state.promptDialogVisible = true;
+    };
+
+    // 生成AI封面
+    const generateCover = async () => {
+      if (!state.coverPrompt) {
+        ElMessage.error("请输入生成封面的描述提示");
+        return;
+      }
+      
+      try {
+        state.isGenerating = true;
+        const text=state.coverPrompt;
+        const response = await textToImage( {text:text }, { timeout: 60000 } );
+         console.log("完整响应:", response); // 打印完整响应
+        if (response.data) {
+          state.aiCoverUrl = response.data;
+          state.promptDialogVisible = false;
+        } else {
+          ElMessage.error("封面生成失败，请稍后再试");
+        }
+      } catch (error) {
+        console.error("生成封面出错:", error);
+        ElMessage.error("封面生成出错: " + (error.message || "未知错误"));
+      } finally {
+        state.isGenerating = false;
+      }
+    };
+
+    // 应用AI生成的封面
+    const applyAiCover = async () => {
+      if (state.aiCoverUrl) {
+        const url = state.aiCoverUrl;
+        const response = await pngToJpg({url: url});
+        state.book.picUrl = response.data;
+        console.log("最终url" + response.data);
+        state.aiCoverUrl = null;
+        ElMessage.success("封面已应用");
+      }
+    };
+
+    // 取消AI生成的封面
+    const cancelAiCover = () => {
+      state.aiCoverUrl = null;
+    };
+
+    // 关闭提示词对话框
+    const handlePromptDialogClose = (done) => {
+      if (state.isGenerating) {
+        ElMessage.warning("封面正在生成中，请稍候...");
+        return;
+      }
+      done();
+    };
+
     const saveBook = async () => {
       console.log("sate=========",state.book)
       if (!state.book.bookName) {
         ElMessage.error("书名不能为空！");
         return;
       }
+
+
       if (!state.book.picUrl) {
+
         ElMessage.error("封面不能为空！");
         return;
       }
@@ -222,7 +316,12 @@ export default {
       handleAvatarSuccess,
       loadCategoryList,
       categoryChange,
-      saveBook
+      saveBook,
+      showPromptDialog,
+      generateCover,
+      applyAiCover,
+      cancelAiCover,
+      handlePromptDialogClose
     };
   },
 };

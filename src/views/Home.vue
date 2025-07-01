@@ -202,20 +202,6 @@
     <BookUpdateRank />
   </div>
   <FriendLink />
-  <div class="recharge-section">
-    <h3>在线充值</h3>
-    <form action="http://127.0.0.1:20010/api/front/payment/toPay" method="POST">
-      <div class="input-group">
-        <label>用户ID：</label>
-        <input type="number" name="userId" placeholder="请输入用户ID" required />
-      </div>
-      <div class="input-group">
-        <label>金额：</label>
-        <input type="number" name="money" placeholder="请输入整数金额" required />
-      </div>
-      <button type="submit">立即支付</button>
-    </form>
-  </div>
   <Footer />
 </template>
 

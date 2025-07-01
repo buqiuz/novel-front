@@ -82,11 +82,13 @@ export default {
       }
     };
     onMounted(async () => {
-      const userInfo = await getUserinfo();
-      if (userInfo) {
-        state.userId = userInfo.data.id;
-      }
-      await fetchGoldCoin(); // 页面加载时获取金币
+      if(state.token){
+        const userInfo = await getUserinfo();
+        if (userInfo) {
+          state.userId = userInfo.data.id;
+        }
+        await fetchGoldCoin(); // 页面加载时获取金币
+        }
     });
     const searchByK = () => {
       router.push({ path: "/bookclass", query: { key: state.keyword } });
