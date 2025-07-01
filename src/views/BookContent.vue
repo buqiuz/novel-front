@@ -442,26 +442,8 @@ export default {
       }
     };
 
-    onMounted(async () => {
-      const chapterId = route.params.chapterId;
-      const userId = getUid();
-      if(!userId){
-        ElMessage.warning("请先登录！");
-        router.push({ path: '/login' });
-        return;
-      }
-      try{
-        const res = await checkChapterUnlock({userId:userId, chapterId:chapterId});
-        if(!res.data){
-          document.body.style.overflow = 'hidden'; // 禁止滚动
-          showUnlockDialog.value = true;
-
-        }
-      } catch (error) {
-        ElMessage.error("网络异常，请稍后再试");
-        console.error(error);
-      }
-      await init(route.params.chapterId);
+    onMounted(() => {
+      init(route.params.chapterId);
       console.log("route.params.chapterId:", route.params.chapterId);
       keyDown();
     });
@@ -528,6 +510,21 @@ export default {
     const init = async (chapterId) => {
       const { data } = await getBookContent(chapterId);
       state.data = data;
+      const userId = getUid();
+      if(!userId){
+        ElMessage.warning("请先登录！");
+        await router.push({name: "login"});
+      }
+      try{
+        const res = await checkChapterUnlock({userId:userId, chapterId:chapterId});
+        if(!res.data){
+          document.body.style.overflow = 'hidden'; // 禁止滚动
+          showUnlockDialog.value = true;
+        }
+      } catch (error) {
+        ElMessage.error("网络异常，请稍后再试");
+        console.error(error);
+      }
     };
 
     // 监听键盘左右键翻页
@@ -550,6 +547,8 @@ export default {
       showUnlockDialog,
       handleBuyChapter,
       goToChapterList,
+      nextChapter,
+      preChapter,
       fontSize,
       fontFamily,
       themeClass,
