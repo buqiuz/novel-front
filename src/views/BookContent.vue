@@ -451,7 +451,7 @@ export default {
         return;
       }
       try{
-        const res = await checkChapterUnlock(userId, chapterId);
+        const res = await checkChapterUnlock({userId:userId, chapterId:chapterId});
         if(!res.data){
           document.body.style.overflow = 'hidden'; // 禁止滚动
           showUnlockDialog.value = true;
@@ -483,7 +483,7 @@ export default {
     const handleBuyChapter = async () => {
       const userId = getUid();
       try{
-        const res = await unlockChapter(userId, route.params.chapterId,50);
+        const res = await unlockChapter(userId, route.params.chapterId, 50);
         if(res.data==='1'){
           location.reload(); // 强制刷新页面（不推荐频繁使用）
         }

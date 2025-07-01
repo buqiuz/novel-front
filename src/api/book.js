@@ -56,13 +56,8 @@ export function listNewestComments(params) {
     return request.get('/front/book/comment/newest_list',{ params });
 }
 
-export function checkChapterUnlock(userId, chapterId) {
-    return request.get("front/book/chapter/unlockInfo", {
-        params: {
-            userId,
-            chapterId
-        }
-    });
+export function checkChapterUnlock(params) {
+    return request.get('front/book/chapter/unlockInfo', { params });
 }
 
 export function unlockChapter(userId,chapterId,coins) {
