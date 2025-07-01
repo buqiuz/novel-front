@@ -111,13 +111,14 @@
       <a class="closePopup" href="javascript:void(0);" @click="closeVoiceSelector">关闭</a>
       <div class="popupTit"><h3>选择听书音色</h3></div>
       <div class="voiceList">
+        <!-- 音色选择按钮 -->
         <button
             v-for="voice in voices"
             :key="voice"
             :class="['voiceBtn', selectedVoice === voice ? 'active' : '']"
             @click="selectVoice(voice)"
         >
-          {{ voice }}
+          {{ voiceNameMap[voice] }}
         </button>
 
         <!-- 新增暂停/继续按钮 -->
@@ -151,6 +152,14 @@ export default {
   setup() {
     const route = useRoute();
     const router = useRouter();
+    // 在 setup 函数中添加音色映射
+    const voiceNameMap = {
+      'CHERRY': '甜美女声',
+      'SERENA': '成熟女声',
+      'ETHAN': '稳重男声',
+      'CHELSIE': '温柔女声'
+    };
+
 
     const themeMap = {
       white: 'read_style_1',
@@ -507,6 +516,7 @@ export default {
       showVoiceSelector,
       voices,
       selectedVoice,
+      voiceNameMap, // 添加这一行
       toggleTTS,
       selectVoice,
       closeVoiceSelector: () => (showVoiceSelector.value = false),
@@ -558,9 +568,51 @@ export default {
 /* 按钮容器：均匀分布 */
 .voiceList {
   display: flex;
-  justify-content: space-between;
-  gap: 15px;
   flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+/* 第一行音色按钮布局 */
+.voiceBtn:not(.pauseBtn) {
+  flex: 1 1 60px;
+  max-width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  font-size: 12px;
+  line-height: 1.2;
+  padding: 0;
+  margin: 0 5px;
+}
+
+/* 第二行暂停按钮布局 */
+.voiceBtn.pauseBtn {
+  flex: 0 0 120px;
+  height: 36px;
+  border-radius: 18px;
+  margin-top: 15px;
+  background-color: #f0ad4e;
+  color: white;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 调整弹窗大小与位置 */
+.ttsVoiceBox {
+  width: 340px;
+  margin-left: -170px;
+  margin-top: -130px;
+  padding: 25px 20px 30px;
+}
+
+/* 确保弹窗标题样式 */
+.ttsVoiceBox .popupTit h3 {
+  margin-bottom: 25px;
 }
 
 /* 单个音色按钮 */
