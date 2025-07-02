@@ -2,12 +2,12 @@
   <div class="mainNav" id="mainNav">
     <div class="box_center cf">
       <ul class="nav" id="navModule">
-        <li><router-link :to="{ name: 'home' }">首页</router-link></li>
+        <li><router-link :to="{ name: 'home' }" replace>首页</router-link></li>
         <li>
-          <router-link :to="{ name: 'bookclass' }"> 全部作品 </router-link>
+          <router-link :to="{ name: 'bookclass' }" replace> 全部作品 </router-link>
         </li>
-        <li><router-link :to="{ name: 'bookRank' }">排行榜</router-link></li>
-        <li><router-link :to="{ name: 'payment' }">充值</router-link></li>
+        <li><router-link :to="{ name: 'bookRank' }" replace>排行榜</router-link></li>
+        <li><router-link :to="{ name: 'payment' }" replace>充值</router-link></li>
 <!--        <li class=""><a href="/pay/index.html">充值</a></li>-->
         <li><a @click="goAuthor" href="javascript:void(0)">作家专区</a></li>
       </ul>
@@ -27,7 +27,7 @@ export default {
     const router = useRouter();
     const goAuthor = async () => {
       if (!getToken()) {
-        router.push({
+        router.replace({
           name: "login",
         });
         return;
@@ -35,7 +35,7 @@ export default {
 
       const {data} = await getAuthorStatus();
       if(data === null){
-          router.push({
+          router.replace({
           name: "authorRegister",
         });
         return;

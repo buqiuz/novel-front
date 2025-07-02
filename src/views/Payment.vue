@@ -177,7 +177,7 @@ export default {
         state.userId = userInfo.data.id;
       } else {
         alert("无法获取用户ID，请先登录");
-        router.push({ name: "login" });
+        router.replace({ name: "login" });
       }
     };
 

@@ -123,7 +123,7 @@ export default {
           removeUid();
 
           // 跳转到首页或登录页
-          router.push({ name: "home" });
+          router.replace({ name: "home" });
         } else {
           ElMessage.error(msg || "删除失败");
         }

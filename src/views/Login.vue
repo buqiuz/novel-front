@@ -138,7 +138,7 @@ export default {
       setToken(data.token);
       setUid(data.uid)
       setNickName(data.nickName)
-      router.push({ path: "/home" });
+      router.replace({ path: "/home" });
     };
 
     return {

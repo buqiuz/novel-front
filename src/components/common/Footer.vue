@@ -23,9 +23,9 @@ export default {
     const router = useRouter();
     const goFeedBack = () => {
       if(!getToken()){
-        router.push({name: 'login'});
+        router.replace({name: 'login'});
       }else{
-      router.push({name: 'feadback'});
+      router.replace({name: 'feadback'});
       }
     };
     return {

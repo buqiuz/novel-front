@@ -349,7 +349,7 @@ export default {
       }
 
       await publishChapter(state.bookId, state.chapter);
-      router.push({ name: "authorChapterList", query: { id: state.bookId } });
+      router.replace({ name: "authorChapterList", query: { id: state.bookId } });
     };
 
     return {

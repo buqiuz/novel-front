@@ -91,7 +91,7 @@ export default {
         }
     });
     const searchByK = () => {
-      router.push({ path: "/bookclass", query: { key: state.keyword } });
+      router.replace({ path: "/bookclass", query: { key: state.keyword } });
       context.emit("eventSerch", state.keyword);
     };
     const logout = () => {
