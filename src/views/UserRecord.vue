@@ -1,38 +1,83 @@
- <template>
-  <div class="my_l">
-    <ul class="log_list">
-      <li>
-        <router-link :class="`${routeName == 'userSetup' ? 'link_8 on' : 'link_8'}`" :to="{ name: 'userSetup' }"
-          >账号设置</router-link
-        >
-      </li>
-      <li>
-        <router-link :class="`${routeName == 'userComment' ? 'link_6 on' : 'link_6'}`" :to="{ name: 'userComment' }"
-          >我的评论</router-link
-        >
-      </li>
-      <li>
-        <router-link :class="`${routeName == 'userRecord' ? 'link_2 on' : 'link_2'}`" :to="{ name: 'userRecord' }"
-        >流水查询</router-link
-        >
-      </li>
-    </ul>
+<template>
+  <Header />
+
+  <div class="main box_center cf">
+    <div class="userBox cf">
+      <UserMenu />
+      <div class="my_r">
+        <div class="my_bookshelf">
+          <div class="title cf">
+            <h2 class="fl">流水信息</h2>
+            <div class="fr"></div>
+          </div>
+          <div class="bookComment">
+            <div v-if="total == 0" class="no_contet no_record" >
+              您还没有使用或获取过书币哦！
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
+  <Footer />
 </template>
 
 <script>
-import { useRoute } from "vue-router";
+import "@/assets/styles/user.css";
+import man from "@/assets/images/man.png";
+import { listComments } from '@/api/user'
+import { reactive, toRefs, onMounted, ref } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import Header from "@/components/common/Header";
+import Footer from "@/components/common/Footer";
+import UserMenu from "@/components/user/Menu";
 export default {
-  name: "UserMenu",
+  name: "userRecord",
+  components: {
+    Header,
+    Footer,
+    UserMenu
+  },
   setup() {
     const route = useRoute();
-    const routeName = route.name;
-    return {routeName}
-  }
+    const router = useRouter();
+
+    const state = reactive({
+      total: 0,
+      pageSize: 10,
+      comments:[],
+      baseUrl: process.env.VUE_APP_BASE_API_URL,
+      imgBaseUrl: process.env.VUE_APP_BASE_IMG_URL,
+    });
+
+    onMounted(async () => {
+    });
+
+    return {
+      ...toRefs(state),
+      man,
+
+    };
+  },
 };
 </script>
 
 <style scoped>
+.el-pagination {
+  justify-content: center;
+}
+.el-pagination.is-background .el-pager li:not(.is-disabled).is-active {
+  background-color: #f80 !important;
+}
+.el-pagination {
+  --el-pagination-hover-color: #f80 !important;
+}
+.avatar-uploader .avatar {
+  width: 178px;
+  height: 178px;
+  display: block;
+}
 .avatar-uploader .avatar {
   width: 178px;
   height: 178px;
@@ -505,6 +550,7 @@ export default {
   text-align: center;
   color: #999;
   border-top: 1px solid #eee;
+  font-size: 14px; /* 增大默认字体 */
 }
 
 .comment_list {
@@ -593,7 +639,6 @@ export default {
 .pl_bar .reply {
   padding-left: 22px;
 }
-/*.no_comment { padding: 70px 14px 115px; color: #CCCCCC; text-align: center; font-size: 14px; }*/
 .reply_bar {
   background: #f9f9f9;
   border: 1px solid #eee;
@@ -602,3 +647,4 @@ export default {
   line-height: 1.8;
 }
 </style>
+

@@ -199,7 +199,6 @@ export default {
       // 构造表单并自动提交
       const form = document.createElement("form");
       form.method = "POST";
-      // form.action = "http://127.0.0.1:20010/api/front/payment/toPay";
       form.action = state.baseurl+"/front/payment/toPay";
 
       const inputUserId = document.createElement("input");

@@ -53,19 +53,16 @@ const router = createRouter({
       path: '/book/:id',
       name: 'book',
       component: () => import('@/views/Book')
-	   
     },
     {
       path: '/chapter_list/:bookId',
       name: 'chapterList',
       component: () => import('@/views/ChapterList')
-	   
     },
     {
       path: '/book/:id/:chapterId',
       name: 'bookContent',
       component: () => import('@/views/BookContent')
-	   
     },
     {
       path: '/user/setup',
@@ -76,7 +73,11 @@ const router = createRouter({
       path: '/user/comment',
       name: 'userComment',
       component: () => import('@/views/UserComment')
-	   
+    },
+    {
+      path: '/user/record',
+      name: 'userRecord',
+      component: () => import('@/views/UserRecord')
     },
     {
       path: '/author/register',
