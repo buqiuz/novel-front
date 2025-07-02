@@ -21,7 +21,7 @@
                 <tr>
                   <th>操作时间</th>
                   <th>描述</th>
-                  <th>金额</th>
+                  <th>余额变动</th>
                 </tr>
                 </thead>
                 <tbody>
