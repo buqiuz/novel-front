@@ -174,6 +174,7 @@ import Footer from "@/components/common/Footer";
 import { getTTSStreamUrl, getTTSStreamWithPost } from "@/api/ai";
 import { getUid } from "@/utils/auth";
 import { checkChapterUnlock } from "@/api/book"
+import { getCurrentInstance } from 'vue';
 
 export default {
   name: "bookContent",
@@ -502,9 +503,17 @@ export default {
 
 // 跳转到支付页面（根据你的路由配置修改）
     const goToPayPage = (bookId) => {
+      const chapterId = route.params.chapterId;
+      console.log("书籍ID" +bookId);
+      console.log("章节ID" +chapterId);
       showRechargeDialog.value = false;
       document.body.style.overflow = ''; // 恢复滚动
-      router.push({name:'payment'});
+      router.push({
+        name:'payment',
+        query:{
+          bookId,
+          chapterId
+      }});
     };
 
 

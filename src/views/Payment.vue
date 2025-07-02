@@ -151,11 +151,12 @@ h3 {
 
 <script>
 import { reactive, toRefs, onMounted } from "vue";
-import { useRouter } from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 import { getUserinfo } from "@/api/user";
 import Header from "@/components/common/Header.vue";
 import Footer from "@/components/common/Footer.vue";
-
+import app from "@/App.vue";
+import { getCurrentInstance } from 'vue';
 export default {
   name: "Payment",
   components: { Footer, Header },
@@ -167,7 +168,7 @@ export default {
       baseurl:process.env.VUE_APP_BASE_API_URL,
       userId: null,
     });
-
+    const route = useRoute();
     const router = useRouter();
 
     // 获取用户信息
@@ -195,12 +196,18 @@ export default {
         alert("请输入有效的金额");
         return;
       }
+      const paymentContext = {
+        bookId: route.query.bookId || null,
+        chapterId: route.query.chapterId || null
+      };
+      console.log(paymentContext);
 
       // 构造表单并自动提交
       const form = document.createElement("form");
       form.method = "POST";
       form.action = state.baseurl+"/front/payment/toPay";
 
+      // 构建基础字段
       const inputUserId = document.createElement("input");
       inputUserId.type = "hidden";
       inputUserId.name = "userId";
@@ -211,9 +218,25 @@ export default {
       inputMoney.name = "money";
       inputMoney.value = amount;
 
-      form.appendChild(inputUserId);
-      form.appendChild(inputMoney);
+      let inputs = [inputUserId, inputMoney];
 
+      // 添加可选字段（即使为空也提交）
+      const inputBookId = document.createElement("input");
+      inputBookId.type = "hidden";
+      inputBookId.name = "bookId";
+      inputBookId.value = paymentContext.bookId === null ? "0" : paymentContext.bookId;
+
+      const inputChapterId = document.createElement("input");
+      inputChapterId.type = "hidden";
+      inputChapterId.name = "chapterId";
+      inputChapterId.value = paymentContext.chapterId===null ? "0" : paymentContext.chapterId;
+
+      inputs.push(inputBookId, inputChapterId);
+
+      // 插入所有字段到表单
+      inputs.forEach((input) => form.appendChild(input));
+
+      // 将表单添加到 body 并提交
       document.body.appendChild(form);
       form.submit();
     };
