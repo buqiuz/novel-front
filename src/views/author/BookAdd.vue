@@ -306,7 +306,7 @@ export default {
         return;
       }
       await publishBook(state.book)
-      router.push({'name':'authorBookList'})
+      router.replace({'name':'authorBookList'})
     }
 
     return {
