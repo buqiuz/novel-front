@@ -66,7 +66,10 @@
                   <td class="goread" id="opt1431636515973345292">
                     <div class="action-buttons">
                       <router-link class="redBtn" :to="{'name':'authorChapterList','query':{'id':item.id}}">
-                        章节管理
+                        写作
+                      </router-link>
+                      <router-link class="editBtn" :to="{'name':'authorBookEdit','query':{'id':item.id}}">
+                        修改
                       </router-link>
                       <a class="delBtn" href="javascript:void(0)" @click="confirmDelete(item.id, item.bookName)">
                         删除
@@ -86,37 +89,6 @@
               @current-change="handleCurrentChange"
             />
           </div>
-          <!--<div id="divData" class="updateTable">
-                    <table cellpadding="0" cellspacing="0">
-                        <thead>
-                        <tr>
-
-                            <th class="name">
-                                爬虫源（已开启的爬虫源）
-                            </th>
-                            <th class="chapter">
-                                成功爬取数量（websocket实现）
-                            </th>
-                            <th class="time">
-                            目标爬取数量
-                            </th>
-                            <th class="goread">
-                                状态（正在运行，已停止）（一次只能运行一个爬虫源）
-                            </th>
-                            <th class="goread">
-                                操作（启动，停止）
-                            </th>
-                        </tr>
-                        </thead>
-                        <tbody id="bookShelfList">
-
-
-
-                        </tbody>
-                    </table>
-                    <div class="pageBox cf" id="shellPage">
-                    </div>
-                </div>-->
         </div>
       </div>
     </div>
@@ -237,7 +209,7 @@ export default {
   gap: 12px;
 }
 
-.redBtn, .delBtn {
+.redBtn, .delBtn,.editBtn {
   padding: 3px 8px; /* 减小内边距使按钮更小 */
   border-radius: 10px; /* 更圆润的边角 */
   font-size: 12px;
@@ -248,7 +220,7 @@ export default {
   line-height: 2.5; /* 确保行高正常 */
 }
 
-.redBtn {
+.redBtn,.editBtn {
   border: 1px solid #f80;
   background: #f80;
   color: #fff;
@@ -258,6 +230,12 @@ export default {
   border: 1px solid #ff4040;
   background: #ff4040;
   color: #fff;
+}
+
+a.editBtn:hover {
+  background: #ff9900;
+  color: #fff;
+  box-shadow: 0 2px 4px rgba(255, 136, 0, 0.3);
 }
 
 a.redBtn:hover {
@@ -279,7 +257,7 @@ a.delBtn:hover {
     gap: 4px;
   }
 
-  .redBtn, .delBtn {
+  .redBtn, .delBtn,.editBtn {
     width: 100%;
     justify-content: center;
   }
