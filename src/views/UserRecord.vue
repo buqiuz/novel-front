@@ -14,7 +14,45 @@
             <div v-if="total == 0" class="no_contet no_record" >
               您还没有使用或获取过书币哦！
             </div>
+            <!-- 列表展示 -->
+            <div v-else class="dataTable">
+              <table>
+                <thead>
+                <tr>
+                  <th>操作时间</th>
+                  <th>描述</th>
+                  <th>金额</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="(log, index) in walletLogs" :key="log.id || `empty-${index}`">
+                  <td v-if="log.empty"></td>
+                  <td v-else>{{ formatDate(log.createdAt) }}</td>
 
+                  <td v-if="log.empty"></td>
+                  <td v-else>{{ log.subject }}</td>
+
+                  <td v-if="log.empty"></td>
+                  <td v-else :class="{'text-red': log.amount.startsWith('-'),'text-green': !log.amount.startsWith('-')}">
+                    {{ formatAmount(log.amount) }}
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+
+
+            <div class="pagination-wrapper">
+              <el-pagination
+                  v-if="total > 0"
+                  layout="prev, pager, next"
+                  :total="total"
+                  :page-size="pageSize"
+                  :current-page="pageNum"
+                  @current-change="handlePageChange"
+                  background
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -26,12 +64,13 @@
 <script>
 import "@/assets/styles/user.css";
 import man from "@/assets/images/man.png";
-import { listComments } from '@/api/user'
+import { getWalletLog } from '@/api/payment'
 import { reactive, toRefs, onMounted, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import Header from "@/components/common/Header";
 import Footer from "@/components/common/Footer";
 import UserMenu from "@/components/user/Menu";
+import {getUid} from "@/utils/auth";
 export default {
   name: "userRecord",
   components: {
@@ -44,26 +83,81 @@ export default {
     const router = useRouter();
 
     const state = reactive({
+      pageSize: 8,
+      pageNum: 1,
+      walletLogs:[],
       total: 0,
-      pageSize: 10,
-      comments:[],
       baseUrl: process.env.VUE_APP_BASE_API_URL,
       imgBaseUrl: process.env.VUE_APP_BASE_IMG_URL,
     });
+    const formatDate = (timeStr) => {
+      return timeStr.replace('T', ' ');
+    };
+    const formatAmount = (amount) => {
+      const num = parseFloat(amount);
+      if (isNaN(num)) return amount;
+      return num >= 0 ? `+${amount}` : amount;
+    };
+    const handlePageChange = (pageNum) => {
+      state.pageNum = pageNum;
+      loadWalletLog(); // 重新加载当前页数据
+    };
+    const loadWalletLog = async () => {
+      const params={
+        userId:Number(getUid()),
+        pageNum:state.pageNum,
+        pageSize:state.pageSize
+      }
+      try{
+        const res = await getWalletLog(params);
+        if(res.ok){
+          state.total = Number(res.data.total);
+          // 填充空数据
+          const logs = res.data.walletLogs || [];
+          const remaining = state.pageSize - logs.length;
 
+          if (remaining > 0) {
+            for (let i = 0; i < remaining; i++) {
+              logs.push({ empty: true }); // 使用 empty 标记为空行
+            }
+          }
+
+          state.walletLogs = logs;
+        }
+      }catch (err){
+        console.error('获取流水信息失败', err);
+      }
+    };
     onMounted(async () => {
+      await loadWalletLog();
     });
 
     return {
       ...toRefs(state),
       man,
-
+      formatDate,
+      formatAmount,
+      handlePageChange
     };
   },
 };
 </script>
 
 <style scoped>
+.text-red {
+  color: red;
+}
+.text-green {
+  color: green;
+}
+.pagination-wrapper {
+  position: sticky;
+  bottom: 20px;
+  z-index: 999;
+  background: #fff;
+  padding: 10px 0;
+  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.05);
+}
 .el-pagination {
   justify-content: center;
 }
@@ -477,11 +571,15 @@ export default {
 }
 .dataTable {
   width: 739px;
+  max-height: 400px; /* 固定最大高度 */
+  overflow-y: auto;   /* 超出时显示垂直滚动条 */
+  border: 1px solid #eaeaea;
+  margin: 0 auto;
 }
 .dataTable table {
   width: 100%;
-  margin-bottom: 14px;
   border-collapse: collapse;
+  table-layout: fixed; /* 固定列宽 */
 }
 .dataTable th,
 .dataTable td {

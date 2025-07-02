@@ -10,3 +10,8 @@ export function getGoldBalance(userId) {
         responseType: 'text'
     });
 }
+
+
+export function getWalletLog(params) {
+    return request.get(`/front/payment/walletLog?userId=${params.userId}&pageNum=${params.pageNum}&pageSize=${params.pageSize}`);
+}
