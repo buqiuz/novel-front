@@ -64,3 +64,7 @@ export function unlockChapter(userId,chapterId,coins) {
     return request.post(`/front/payment/useCoins?userId=${userId}&chapterId=${chapterId}&goldCoins=${coins}`);
 }
 
+export function listComments(params) {
+    return request.get('/front/book/comment/user_list', { params });
+}
+

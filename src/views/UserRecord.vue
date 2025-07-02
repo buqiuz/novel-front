@@ -42,17 +42,15 @@
             </div>
 
 
-            <div class="pagination-wrapper">
-              <el-pagination
-                  v-if="total > 0"
-                  layout="prev, pager, next"
-                  :total="total"
-                  :page-size="pageSize"
-                  :current-page="pageNum"
-                  @current-change="handlePageChange"
-                  background
-              />
-            </div>
+            <el-pagination
+                v-if="total > 0"
+                layout="prev, pager, next"
+                :total="total"
+                :page-size="pageSize"
+                :current-page="pageNum"
+                @current-change="handlePageChange"
+                background
+            />
           </div>
         </div>
       </div>
@@ -150,18 +148,10 @@ export default {
 .text-green {
   color: green;
 }
-.pagination-wrapper {
-  position: sticky;
-  bottom: 20px;
-  z-index: 999;
-  background: #fff;
-  padding: 10px 0;
-  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.05);
-}
 .el-pagination {
   justify-content: center;
 }
-.el-pagination.is-background .el-pager li:not(.is-disabled).is-active {
+::v-deep .el-pagination .el-pager li.is-active {
   background-color: #f80 !important;
 }
 .el-pagination {

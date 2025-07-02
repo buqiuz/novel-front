@@ -6,32 +6,62 @@
       <UserMenu />
       <div class="my_r">
         <div class="my_bookshelf">
-                <div class="title cf">
-                    <h2 class="fl">我的书评</h2>
-                    <div class="fr"></div>
-                </div>
-                <div class="bookComment">
-                    <div v-if="total == 0" class="no_contet no_comment" >
-                        您还没有发表过评论！
-                    </div>
-                    <div v-if="total > 0" class="commentBar" id="commentBar">
-                      <div v-for="(item, index) in comments"
-                  :key="index" class="comment_list cf"><div class="user_heads fl" vals="389"><img :src="
-                        imgBaseUrl + item.commentBookPic
-                         
-                      " class="user_head" alt="" onerror="this.src='default.gif';this.onerror=null"><span class="user_level1" style="display: none;">见习</span></div><ul class="pl_bar fr">			<li class="name">{{ item.commentBook }}</li><li class="dec" v-html="item.commentContent"></li><li class="other cf"><span class="time fl">{{ item.commentTime }}</span><span class="fr"><a href="javascript:void(0);" onclick="javascript:BookDetail.AddAgreeTotal(77,this);" class="zan" style="display: none;">赞<i class="num">(0)</i></a></span></li>		</ul>	</div>
-                    </div>
-                </div>
-                <el-pagination v-if="total > 0"
-          small
-          layout="prev, pager, next"
-          :background="backgroud"
-          :page-size="pageSize"
-          :total="total"
-          class="mt-4"
-          @current-change="handleCurrentChange"
-        />
+          <div class="title cf">
+            <h2 class="fl">我的书评</h2>
+            <div class="fr"></div>
+          </div>
+          <div class="bookComment">
+            <div v-if="total == 0" class="no_contet no_comment" >
+              您还没有发表过评论！
             </div>
+            <!-- 列表展示 -->
+            <div v-else class="dataTable">
+              <table>
+                <thead>
+                <tr>
+                  <th>评论时间</th>
+                  <th>书籍名称</th>
+                  <th>评论内容</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="(log, index) in userComments" :key="log.id || `empty-${index}`">
+                  <!-- 评论时间 -->
+                  <td v-if="log.empty"></td>
+                  <td v-else>{{ formatDate(log.createTime) }}</td>
+
+                  <!-- 书籍名称 -->
+                  <td v-if="log.empty"></td>
+                  <td v-else>
+                    <router-link
+                        :to="{ name: 'book', params: { id: log.book_id } }"
+                        class="book-name-link"
+                    >
+                      {{ log.book_name }}
+                    </router-link>
+                  </td>
+
+                  <!-- 评论内容 -->
+                  <td v-if="log.empty"></td>
+                  <td v-else class="comment-content">{{ log.comment_content }}</td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+
+
+
+            <el-pagination
+                v-if="total > 0"
+                layout="prev, pager, next"
+                :total="total"
+                :page-size="pageSize"
+                :current-page="pageNum"
+                @current-change="handlePageChange"
+                background
+            />
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -41,14 +71,15 @@
 <script>
 import "@/assets/styles/user.css";
 import man from "@/assets/images/man.png";
-import { listComments } from '@/api/user'
+import { listComments } from '@/api/book'
 import { reactive, toRefs, onMounted, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import Header from "@/components/common/Header";
 import Footer from "@/components/common/Footer";
 import UserMenu from "@/components/user/Menu";
+import {getUid} from "@/utils/auth";
 export default {
-  name: "userComment",
+  name: "userRecord",
   components: {
     Header,
     Footer,
@@ -59,46 +90,98 @@ export default {
     const router = useRouter();
 
     const state = reactive({
+      pageSize: 8,
+      pageNum: 1,
+      userComments:[],
       total: 0,
-      pageSize: 10,
-      comments:[],
       baseUrl: process.env.VUE_APP_BASE_API_URL,
       imgBaseUrl: process.env.VUE_APP_BASE_IMG_URL,
     });
-
-    const handleCurrentChange = (pageNum) => {
-      
-      loadComments(pageNum);
+    const formatDate = (timeStr) => {
+      return timeStr.replace('T', ' ');
     };
+    const formatAmount = (amount) => {
+      const num = parseFloat(amount);
+      if (isNaN(num)) return amount;
+      return num >= 0 ? `+${amount}` : amount;
+    };
+    const handlePageChange = (pageNum) => {
+      state.pageNum = pageNum;
+      loadUserComments(); // 重新加载当前页数据
+    };
+    const loadUserComments = async () => {
+      const params={
+        userId:Number(getUid()),
+        pageNum:state.pageNum,
+        pageSize:state.pageSize
+      }
+      try{
+        const res = await listComments(params);
+        console.log("获取书评信息"+res);
+        if(res.ok){
+          state.total = Number(res.data.total);
+          // 填充空数据
+          const comments = res.data.list || [];
+          const remaining = state.pageSize - comments.length;
 
+          if (remaining > 0) {
+            for (let i = 0; i < remaining; i++) {
+              comments.push({ empty: true }); // 使用 empty 标记为空行
+            }
+          }
+
+          state.userComments = comments;
+        }
+      }catch (err){
+        console.error('获取书评信息失败', err);
+      }
+    };
     onMounted(async () => {
-      loadComments(0);
+      await loadUserComments();
     });
-
-    const loadComments = async (pageNum) => {
-      const { data } = await listComments({'pageNum':pageNum,'pageSize':state.pageSize});
-      state.comments = data.list;
-      state.total = Number(data.total);
-    };
-
-    
-    
 
     return {
       ...toRefs(state),
-      handleCurrentChange,
       man,
-      
+      formatDate,
+      formatAmount,
+      handlePageChange
     };
   },
 };
 </script>
 
 <style scoped>
+.comment-content {
+  max-width: 400px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dataTable td {
+  vertical-align: middle;
+}
+
+.dataTable th,
+.dataTable td {
+  text-align: center;
+  padding: 10px;
+}
+.book-name-link {
+  color: #333;
+  text-decoration: none;
+  font-size: 15px;     /* 加大字体 */
+  font-weight: bold;   /* 加粗显示 */
+}
+
+.book-name-link:hover {
+  color: #f80;
+}
+
 .el-pagination {
   justify-content: center;
 }
-.el-pagination.is-background .el-pager li:not(.is-disabled).is-active {
+::v-deep .el-pagination .el-pager li.is-active {
   background-color: #f80 !important;
 }
 .el-pagination {
@@ -508,11 +591,15 @@ export default {
 }
 .dataTable {
   width: 739px;
+  max-height: 400px; /* 固定最大高度 */
+  overflow-y: auto;   /* 超出时显示垂直滚动条 */
+  border: 1px solid #eaeaea;
+  margin: 0 auto;
 }
 .dataTable table {
   width: 100%;
-  margin-bottom: 14px;
   border-collapse: collapse;
+  table-layout: fixed; /* 固定列宽 */
 }
 .dataTable th,
 .dataTable td {
@@ -581,6 +668,7 @@ export default {
   text-align: center;
   color: #999;
   border-top: 1px solid #eee;
+  font-size: 14px; /* 增大默认字体 */
 }
 
 .comment_list {
@@ -669,7 +757,6 @@ export default {
 .pl_bar .reply {
   padding-left: 22px;
 }
-/*.no_comment { padding: 70px 14px 115px; color: #CCCCCC; text-align: center; font-size: 14px; }*/
 .reply_bar {
   background: #f9f9f9;
   border: 1px solid #eee;
