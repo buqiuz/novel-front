@@ -185,7 +185,7 @@ export default {
 
       if (!state.bookId) {
         ElMessage.error("无效的书籍ID");
-        router.push({ name: "authorBookList" });
+        router.replace({ name: "authorBookList" });
         return;
       }
 
@@ -214,12 +214,12 @@ export default {
           await loadCategoryList();
         } else {
           ElMessage.error(response.msg || "获取书籍详情失败");
-          router.push({ name: "authorBookList" });
+          router.replace({ name: "authorBookList" });
         }
       } catch (error) {
         console.error("获取书籍详情出错:", error);
         ElMessage.error("获取书籍详情出错");
-        router.push({ name: "authorBookList" });
+        router.replace({ name: "authorBookList" });
       } finally {
         state.loading = false;
       }

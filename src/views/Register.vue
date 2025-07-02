@@ -239,7 +239,7 @@ export default {
       setToken(data.token);
       setUid(data.uid);
       setNickName(state.username);
-      router.push({ path: "/home" });
+      router.replace({ path: "/home" });
     };
 
     return {

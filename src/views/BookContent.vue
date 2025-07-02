@@ -519,7 +519,7 @@ export default {
     const preChapter = async (bookId) => {
       const { data } = await getPreChapterId(route.params.chapterId);
       if (data) {
-        router.push({ path: `/book/${bookId}/${data}` });
+        router.replace({ path: `/book/${bookId}/${data}` });
         init(data);
       } else {
         ElMessage.warning("已经是第一章了！");
@@ -529,7 +529,7 @@ export default {
     const nextChapter = async (bookId) => {
       const { data } = await getNextChapterId(route.params.chapterId);
       if (data) {
-        router.push({ path: `/book/${bookId}/${data}` });
+        router.replace({ path: `/book/${bookId}/${data}` });
         init(data);
       } else {
         ElMessage.warning("已经是最后一章了！");
@@ -542,7 +542,7 @@ export default {
       const userId = getUid();
       if(!userId){
         ElMessage.warning("请先登录！");
-        await router.push({name: "login"});
+        await router.replace({name: "login"});
       }
       try{
         const res = await checkChapterUnlock({userId:userId, chapterId:chapterId});

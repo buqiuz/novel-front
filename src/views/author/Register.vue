@@ -222,7 +222,7 @@ export default {
       
       const { data } = await register(state);
 
-      router.push({ name: "authorBookList" });
+      router.replace({ name: "authorBookList" });
     };
 
     return {
