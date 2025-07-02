@@ -4,7 +4,7 @@
     <div class="userBox cf">
       <div class="my_l">
         <ul class="log_list">
-          <li>            <router-link class="link_4 on" :to="{'name':'authorBookList'}">小说管理</router-link>
+          <li>            <router-link class="link_4" active-class="on" :to="{'name':'authorBookList'}">小说管理</router-link>
 </li>
 
         </ul>
@@ -220,17 +220,6 @@ export default {
   line-height: 2.5; /* 确保行高正常 */
 }
 
-.redBtn,.editBtn {
-  border: 1px solid #f80;
-  background: #f80;
-  color: #fff;
-}
-
-.delBtn {
-  border: 1px solid #ff4040;
-  background: #ff4040;
-  color: #fff;
-}
 
 a.editBtn:hover {
   background: #ff9900;
