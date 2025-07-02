@@ -4,9 +4,7 @@
     <div class="userBox cf">
       <div class="my_l">
         <ul class="log_list">
-          <li>            <router-link class="link_4 on" :to="{'name':'authorBookList'}">小说管理</router-link>
-</li>
-
+          <li><router-link class="link_4 on" :to="{'name':'authorBookList'}">小说管理</router-link></li>
         </ul>
       </div>
       <div class="my_r">
@@ -15,17 +13,17 @@
             <form method="post" action="./register.html" id="form2">
               <div class="user_l">
                 <div></div>
-                <h3>小说基本信息填写</h3>
+                <h3>修改小说信息</h3>
                 <ul class="log_list">
                   <li><span id="LabErr"></span></li>
                   <b>作品方向：</b>
                   <li>
                     <select
-                    v-model="book.workDirection"
-                      class="s_input"
-                      id="workDirection"
-                      name="workDirection"
-                      @change="loadCategoryList()"
+                        v-model="book.workDirection"
+                        class="s_input"
+                        id="workDirection"
+                        name="workDirection"
+                        @change="loadCategoryList()"
                     >
                       <option value="0">男频</option>
                       <option value="1">女频</option>
@@ -35,45 +33,37 @@
                   <li>
                     <select class="s_input" id="catId" name="catId" v-model="book.categoryId" @change="categoryChange">
                       <option :value="item.id" v-for="(item,index) in bookCategorys" :key="index">{{item.name}}</option>
-                      
                     </select>
                   </li>
-                  <input
-                    type="hidden"
-                    id="catName"
-                    name="catName"
-                    value="玄幻奇幻"
-                  />
+                  <input type="hidden" id="catName" name="catName" value="玄幻奇幻" />
                   <b>小说名：</b>
                   <li>
                     <input
-                      v-model="book.bookName"
-                      type="text"
-                      id="bookName"
-                      name="bookName"
-                      class="s_input"
+                        v-model="book.bookName"
+                        type="text"
+                        id="bookName"
+                        name="bookName"
+                        class="s_input"
                     />
                   </li>
                   <b>小说封面：</b>
                   <li style="position: relative">
                     <el-upload
-                      class="avatar-uploader"
-                      :action="baseUrl + '/front/resource/image'"
-                      :show-file-list="false"
-                      :on-success="handleAvatarSuccess"
-                      :before-upload="beforeAvatarUpload"
+                        class="avatar-uploader"
+                        :action="baseUrl + '/front/resource/image'"
+                        :show-file-list="false"
+                        :on-success="handleAvatarSuccess"
+                        :before-upload="beforeAvatarUpload"
                     >
                       <img
-                        :src="
-                          book.picUrl ? imgBaseUrl + book.picUrl : picUpload
-                        "
-                        class="avatar"
+                          :src="book.picUrl ? imgBaseUrl + book.picUrl : picUpload"
+                          class="avatar"
                       />
                       <div class="cover-actions">
-                        <el-button 
-                          type="primary" 
-                          size="small" 
-                          @click.stop="showPromptDialog"
+                        <el-button
+                            type="primary"
+                            size="small"
+                            @click.stop="showPromptDialog"
                         >
                           <i class="el-icon-magic-stick"></i> AI生成封面
                         </el-button>
@@ -94,47 +84,46 @@
                   <b>小说介绍：</b>
                   <li>
                     <textarea
-                      v-model="book.bookDesc"
-                      name="bookDesc"
-                      rows="5"
-                      cols="53"
-                      id="bookDesc"
-                      class="textarea"
+                        v-model="book.bookDesc"
+                        name="bookDesc"
+                        rows="5"
+                        cols="53"
+                        id="bookDesc"
+                        class="textarea"
                     ></textarea>
                   </li>
 
                   <li>
                     <input
-                      type="button"
-                      @click="saveBook"
-                      name="btnRegister"
-                      value="提交"
-                      id="btnRegister"
-                      class="btn_red"
+                        type="button"
+                        @click="updateBook"
+                        name="btnRegister"
+                        value="提交"
+                        id="btnRegister"
+                        class="btn_red"
                     />
                   </li>
                 </ul>
               </div>
             </form>
           </div>
-
         </div>
       </div>
     </div>
-<!-- 提示词输入对话框 -->
+    <!-- 提示词输入对话框 -->
     <el-dialog
-      v-model="promptDialogVisible"
-      title="AI封面生成提示"
-      width="40%"
-      :before-close="handlePromptDialogClose"
+        v-model="promptDialogVisible"
+        title="AI封面生成提示"
+        width="40%"
+        :before-close="handlePromptDialogClose"
     >
       <div>
         <p>请输入生成封面的描述提示：</p>
         <el-input
-          v-model="coverPrompt"
-          type="textarea"
-          :rows="5"
-          placeholder="例如：精美小说封面，仙侠风格，主角身穿白衣手持长剑，背景有山水云雾，8k高清"
+            v-model="coverPrompt"
+            type="textarea"
+            :rows="5"
+            placeholder="例如：精美小说封面，仙侠风格，主角身穿白衣手持长剑，背景有山水云雾，8k高清"
         ></el-input>
         <div class="prompt-tips">
           <h4>提示词建议：</h4>
@@ -155,22 +144,22 @@
         </span>
       </template>
     </el-dialog>
-
   </div>
 </template>
 
 <script>
 import "@/assets/styles/book.css";
-import { reactive, toRefs, onMounted, ref } from "vue";
+import { reactive, toRefs, onMounted} from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { ElMessage } from "element-plus";
-import { publishBook } from "@/api/author";
-import { listCategorys } from "@/api/book";
+import {getBookById, listCategorys} from "@/api/book";
 import {pngToJpg, textToImage} from "@/api/ai"; // 确保正确导入textToImage函数
 import AuthorHeader from "@/components/author/Header.vue";
 import picUpload from "@/assets/images/pic_upload.png";
+import {editBook} from "@/api/author";
+
 export default {
-  name: "authorBookAdd",
+  name: "authorBookEdit",
   components: {
     AuthorHeader,
   },
@@ -179,19 +168,62 @@ export default {
     const router = useRouter();
 
     const state = reactive({
-      book: {'workDirection' : 0,'isVip':0},
+      book: {workDirection : 0,isVip:0},
+      bookId:route.query.id,
       bookCategorys: [],
       baseUrl: process.env.VUE_APP_BASE_API_URL,
       imgBaseUrl: process.env.VUE_APP_BASE_IMG_URL,
       isGenerating: false,
       aiCoverUrl: null,
       promptDialogVisible: false,
-      coverPrompt: ''
+      coverPrompt: '',
+      loading: false
     });
 
-    onMounted(() => {
-      loadCategoryList()
-    })
+    // 加载书籍详情
+    const loadBookDetail = async () => {
+
+      if (!state.bookId) {
+        ElMessage.error("无效的书籍ID");
+        router.push({ name: "authorBookList" });
+        return;
+      }
+
+      try {
+
+        state.loading = true;
+        const response = await getBookById(state.bookId);
+
+        console.log("xinxi:"+response.data.id);
+        if (response.code === "00000") {
+          state.book = {
+            id: Number(response.data.id),               // 确保是 Long 类型
+            categoryId: Number(response.data.categoryId), // 确保是 Long 类型
+            workDirection: Number(response.data.workDirection || 0), // 确保是 Integer
+            bookStatus: Number(response.data.bookStatus || 0),       // 确保是 Integer
+            isVip: Number(response.data.isVip || 0),
+            categoryName: response.data.categoryName,
+            picUrl: response.data.picUrl,
+            bookName: response.data.bookName,
+            bookDesc: response.data.bookDesc,
+
+          };
+
+
+          // 加载分类列表
+          await loadCategoryList();
+        } else {
+          ElMessage.error(response.msg || "获取书籍详情失败");
+          router.push({ name: "authorBookList" });
+        }
+      } catch (error) {
+        console.error("获取书籍详情出错:", error);
+        ElMessage.error("获取书籍详情出错");
+        router.push({ name: "authorBookList" });
+      } finally {
+        state.loading = false;
+      }
+    };
 
     const beforeAvatarUpload = (rawFile) => {
       if (rawFile.type !== "image/jpeg") {
@@ -210,29 +242,35 @@ export default {
     };
 
     const loadCategoryList = async () => {
-      const { data } = await listCategorys({ workDirection: state.book.workDirection });
-      state.book.categoryId = data[0].id
-      state.book.categoryName = data[0].name
-      state.bookCategorys = data;
+      try {
+        const { data } = await listCategorys({ workDirection: state.book.workDirection });
+        state.bookCategorys = data;
+
+        // 如果当前分类不在列表中，使用第一个分类
+        if (!state.book.categoryId || !state.bookCategorys.some(c => c.id === state.book.categoryId)) {
+          state.book.categoryId = Number(data[0]?.id);
+          state.book.categoryName = data[0]?.name;
+        }
+      } catch (error) {
+        console.error("加载分类列表出错:", error);
+        ElMessage.error("加载分类列表失败");
+      }
     };
 
     const categoryChange = async (event) => {
-      console.log("categoryChange======",event.target.value)
-     state.bookCategorys.forEach((category)=>{
-        if(category.id == event.target.value){
-          state.book.categoryName = category.name
-          return
-        }
-      });
+      const selectedCategory = state.bookCategorys.find(item => item.id == event.target.value);
+      if (selectedCategory) {
+        state.book.categoryName = selectedCategory.name;
+      }
     }
 
     // 显示提示词输入对话框
     const showPromptDialog = () => {
       // 自动生成默认提示词
       state.coverPrompt = `小说封面，标题：${state.book.bookName || ''}，类型：${state.book.categoryName || ''}，${
-        state.book.workDirection == 0 ? '男频' : '女频'
+          state.book.workDirection == 0 ? '男频' : '女频'
       }，风格：精美插画，高清，8k`;
-      
+
       state.promptDialogVisible = true;
     };
 
@@ -242,12 +280,11 @@ export default {
         ElMessage.error("请输入生成封面的描述提示");
         return;
       }
-      
+
       try {
         state.isGenerating = true;
         const text=state.coverPrompt;
         const response = await textToImage( {text:text }, { timeout: 60000 } );
-         console.log("完整响应:", response); // 打印完整响应
         if (response.data) {
           state.aiCoverUrl = response.data;
           state.promptDialogVisible = false;
@@ -268,7 +305,6 @@ export default {
         const url = state.aiCoverUrl;
         const response = await pngToJpg({url: url});
         state.book.picUrl = response.data;
-        console.log("最终url" + response.data);
         state.aiCoverUrl = null;
         ElMessage.success("封面已应用");
       }
@@ -288,26 +324,58 @@ export default {
       done();
     };
 
-    const saveBook = async () => {
-      console.log("sate=========",state.book)
+    // 更新书籍信息
+    const updateBook = async () => {
       if (!state.book.bookName) {
         ElMessage.error("书名不能为空！");
         return;
       }
 
-
       if (!state.book.picUrl) {
-
         ElMessage.error("封面不能为空！");
         return;
       }
+
       if (!state.book.bookDesc) {
         ElMessage.error("简介不能为空！");
         return;
       }
-      await publishBook(state.book)
-      router.replace({'name':'authorBookList'})
+      try {
+        state.loading = true;
+
+        // 构造符合后端 DTO 结构的对象
+        const payload = {
+          id: Number(state.bookId),  // 从 URL 路径参数获取
+          bookName: state.book.bookName,
+          categoryId: state.book.categoryId,
+          categoryName: state.book.categoryName,
+          picUrl: state.book.picUrl,
+          bookDesc: state.book.bookDesc,
+          bookStatus: state.book.bookStatus,
+          isVip: state.book.isVip,
+          workDirection: state.book.workDirection
+        };
+
+        console.log("请求数据:", payload); // 打印确认数据
+        const response = await editBook(state.bookId, payload);
+        if (response.code === "00000") {
+          ElMessage.success("书籍信息更新成功");
+          router.replace({ name: "authorBookList" });
+        } else {
+          ElMessage.error(response.msg || "书籍信息更新失败");
+        }
+      } catch (error) {
+        console.error("更新书籍信息出错:", error);
+        ElMessage.error("更新书籍信息出错");
+      } finally {
+        state.loading = false;
+      }
     }
+
+    // 初始化加载书籍详情
+    onMounted(() => {
+      loadBookDetail();
+    });
 
     return {
       ...toRefs(state),
@@ -316,7 +384,7 @@ export default {
       handleAvatarSuccess,
       loadCategoryList,
       categoryChange,
-      saveBook,
+      updateBook,
       showPromptDialog,
       generateCover,
       applyAiCover,

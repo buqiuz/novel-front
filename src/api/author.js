@@ -16,6 +16,10 @@ export function publishBook(params) {
     return request.post('/author/book', params);
 }
 
+export function editBook(bookId, params) {
+    return request.put(`/author/book/${bookId}`, params );
+}
+
 export function listChapters(bookId, params) {
     return request.get(`/author/book/chapters/${bookId}`, { params });
 }
