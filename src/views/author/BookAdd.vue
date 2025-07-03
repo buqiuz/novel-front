@@ -218,44 +218,42 @@
     </div>
   </div>
 
-  <!-- AI提示词输入对话框 -->
-  <el-dialog
+  <!-- AI提示词输入对话框 - 使用TechDialog替换el-dialog -->
+  <TechDialog
     v-model="promptDialogVisible"
     title="AI封面生成"
-    width="40%"
+    width="500px"
     :before-close="handlePromptDialogClose"
-    class="ai-dialog"
-    :class="{'light-theme': !isDarkTheme}"
+    :isDarkTheme="isDarkTheme"
   >
-    <div class="dialog-content">
-      <div class="prompt-section">
-        <h4>描述您想要的封面风格</h4>
-        <el-input
-          v-model="coverPrompt"
-          type="textarea"
-          :rows="5"
-          placeholder="例如：精美小说封面，仙侠风格，主角身穿白衣手持长剑，背景有山水云雾，8k高清"
-          class="prompt-input"
-        ></el-input>
+    <div class="prompt-dialog-content">
+      <div class="prompt-header">
+        <div class="tech-line-short"></div>
+        <h3>描述您想要的封面风格</h3>
       </div>
 
+      <el-input
+        v-model="coverPrompt"
+        type="textarea"
+        :rows="4"
+        placeholder="例如：精美小说封面，仙侠风格，主角身穿白衣手持长剑，背景有山水云雾，8k高清"
+        class="tech-textarea prompt-input"
+      ></el-input>
+
       <div class="prompt-tips">
-        <h5>💡 提示词建议：</h5>
-        <ul>
-          <li>📎 描述封面风格（如：水墨、插画、写实、卡通等）</li>
-          <li>👤 描述主角特征（如：黑衣剑客、红衣少女等）</li>
-          <li>🏞️ 描述场景（如：雪山之巅、竹林深处、都市夜景等）</li>
-          <li>🎯 指定画质（如：8k高清、超精细细节等）</li>
+        <h4><i class="tip-icon">💡</i> 提示词建议：</h4>
+        <ul class="tips-list">
+          <li><span class="tip-label">风格：</span> 水墨、插画、写实、卡通、油画、中国风</li>
+          <li><span class="tip-label">人物：</span> 黑衣剑客、红衣少女、古装将军、现代商业精英</li>
+          <li><span class="tip-label">场景：</span> 雪山之巅、竹林深处、都市夜景、宇宙星空</li>
+          <li><span class="tip-label">画质：</span> 8k高清、超精细细节、质感、逼真</li>
         </ul>
       </div>
     </div>
 
     <template #footer>
       <div class="dialog-footer">
-        <button
-          class="tech-button secondary"
-          @click="promptDialogVisible = false"
-        >
+        <button class="tech-button" @click="promptDialogVisible = false">
           取消
         </button>
         <button
@@ -263,13 +261,13 @@
           @click="generateCover"
           :disabled="isGenerating"
         >
-          <i class="button-icon" v-if="!isGenerating">🎨</i>
-          <i class="button-icon loading" v-else>⏳</i>
           <span>{{ isGenerating ? '生成中...' : '生成封面' }}</span>
+          <i v-if="!isGenerating" class="button-icon">✨</i>
+          <i v-else class="button-icon spinning">⟳</i>
         </button>
       </div>
     </template>
-  </el-dialog>
+  </TechDialog>
 </template>
 
 <script>
@@ -282,10 +280,12 @@ import { listCategorys } from "@/api/book";
 import {pngToJpg, textToImage} from "@/api/ai";
 import Navbar from "@/components/common/Navbar.vue";
 import picUpload from "@/assets/images/pic_upload.png";
+import TechDialog from "@/components/common/TechDialog.vue";
 
 export default {
   name: "authorBookAdd",
   components: {
+    TechDialog,
     Navbar,
   },
   setup() {
