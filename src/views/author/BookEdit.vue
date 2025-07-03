@@ -213,15 +213,13 @@
       <div class="tech-circuit"></div>
     </div>
 
-    <!-- 提示词输入对话框 -->
-    <el-dialog
+    <!-- 提示词输入对话框 - 替换 el-dialog 为 TechDialog -->
+    <TechDialog
       v-model="promptDialogVisible"
       title="AI封面生成"
       width="500px"
       :before-close="handlePromptDialogClose"
-      destroy-on-close
-      class="tech-dialog"
-      :class="{'light-theme': !isDarkTheme}"
+      :isDarkTheme="isDarkTheme"
     >
       <div class="prompt-dialog-content">
         <div class="prompt-header">
@@ -264,7 +262,7 @@
           </button>
         </div>
       </template>
-    </el-dialog>
+    </TechDialog>
   </div>
 </template>
 
@@ -276,6 +274,7 @@ import { ElMessage } from "element-plus";
 import { getBookById, listCategorys } from "@/api/book";
 import { pngToJpg, textToImage } from "@/api/ai";
 import Navbar from "@/components/common/Navbar.vue";
+import TechDialog from "@/components/common/TechDialog.vue";
 import picUpload from "@/assets/images/pic_upload.png";
 import { editBook } from "@/api/author";
 
@@ -283,6 +282,7 @@ export default {
   name: "authorBookEdit",
   components: {
     Navbar,
+    TechDialog,
   },
   setup() {
     const route = useRoute();
@@ -1078,13 +1078,13 @@ export default {
 }
 
 .preview-btn.apply {
-  background: rgba(76, 175, 80, 0.2);
+  background: rgba(76, 175, 76, 0.2);
   color: #4CAF50;
-  border: 1px solid rgba(76, 175, 80, 0.3);
+  border: 1px solid rgba(76, 175, 76, 0.3);
 }
 
 .preview-btn.apply:hover {
-  background: rgba(76, 175, 80, 0.3);
+  background: rgba(76, 175, 76, 0.3);
 }
 
 .preview-btn.cancel {
