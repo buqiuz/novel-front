@@ -1,230 +1,94 @@
 <template>
-  <div class="header">
-<!--    <Top @eventSerch="searchByK" />-->
-    <Navbar @eventSerch="searchByK"/>
-  </div>
-
-  <div class="main box_center cf">
-    <div class="channelWrap classTable cf">
-      <div class="so_tag">
-        <ul class="list">
-          <li class="so_pd" id="workDirection">
-            <span class="tit">作品频道：</span>
-            <a
-              filter-value="0"
-              href="javascript:void(0)"
-              @click="loadCategoryList(0)"
-              :class="`${workDirectionOn == 0 ? 'on' : ''}`"
-              >男频</a
-            >
-            <a
-              filter-value="1"
-              href="javascript:void(0)"
-              @click="loadCategoryList(1)"
-              :class="`${workDirectionOn == 1 ? 'on' : ''}`"
-              >女频</a
-            >
-          </li>
-          <li id="idGirl" class="so_class">
-            <span class="tit">作品分类：</span>
-
-            <span class="so_boy" id="boyCategoryList">
-              <a
-                href="javascript:void(0)"
-                :class="`${categoryOn == 0 ? 'on' : ''}`"
-                @click="changeCategory(0)"
-                >不限</a
-              >
-              <a
-                v-for="(item, index) in bookCategorys"
-                :key="index"
-                href="javascript:void(0)"
-                :class="`${categoryOn == item.id ? 'on' : ''}`"
-                @click="changeCategory(item.id)"
-                >{{ item.name }}</a
-              >
-            </span>
-          </li>
-          <li class="so_progress">
-            <span class="tit">是否完结：</span>
-            <a
-              href="javascript:void(0)"
-              :class="`${bookStatusOn == null ? 'on' : ''}`"
-              @click="changeBookStatus(null)"
-              >不限</a
-            >
-            <a
-              filter-value="0"
-              href="javascript:void(0)"
-              :class="`${bookStatusOn == 0 ? 'on' : ''}`"
-              @click="changeBookStatus(0)"
-              >连载中</a
-            >
-            <a
-              filter-value="1"
-              href="javascript:void(0)"
-              :class="`${bookStatusOn == 1 ? 'on' : ''}`"
-              @click="changeBookStatus(1)"
-              >已完结</a
-            >
-          </li>
-          <li class="so_words">
-            <span class="tit">作品字数：</span>
-            <a
-              href="javascript:void(0)"
-              :class="`${wordCountOn == null ? 'on' : ''}`"
-              @click="changeWordCount(null, null)"
-              >不限</a
-            >
-            <a
-              filter-value-max="300000"
-              href="javascript:void(0)"
-              :class="`${wordCountOn == 0 ? 'on' : ''}`"
-              @click="changeWordCount(0, 300000)"
-              >30万字以下</a
-            >
-            <a
-              filter-value-min="300000"
-              filter-value-max="500000"
-              href="javascript:void(0)"
-              :class="`${wordCountOn == 300000 ? 'on' : ''}`"
-              @click="changeWordCount(300000, 500000)"
-              >30-50万字</a
-            >
-            <a
-              filter-value-min="500000"
-              filter-value-max="1000000"
-              href="javascript:void(0)"
-              :class="`${wordCountOn == 500000 ? 'on' : ''}`"
-              @click="changeWordCount(500000, 1000000)"
-              >50-100万字</a
-            >
-            <a
-              filter-value-min="1000000"
-              href="javascript:void(0)"
-              :class="`${wordCountOn == 1000000 ? 'on' : ''}`"
-              @click="changeWordCount(1000000, null)"
-              >100万字以上</a
-            >
-          </li>
-          <li class="so_update">
-            <span class="tit">更新时间：</span>
-            <a
-              href="javascript:void(0)"
-              :class="`${updateTimeOn == null ? 'on' : ''}`"
-              @click="changeUpdateTime(null)"
-              >不限</a
-            >
-            <a
-              filter-value="3"
-              href="javascript:void(0)"
-              :class="`${updateTimeOn == 3 ? 'on' : ''}`"
-              @click="changeUpdateTime(3)"
-              >三日内</a
-            >
-            <a
-              filter-value="7"
-              href="javascript:void(0)"
-              :class="`${updateTimeOn == 7 ? 'on' : ''}`"
-              @click="changeUpdateTime(7)"
-              >七日内</a
-            >
-            <a
-              filter-value="15"
-              href="javascript:void(0)"
-              :class="`${updateTimeOn == 15 ? 'on' : ''}`"
-              @click="changeUpdateTime(15)"
-              >半月内</a
-            >
-            <a
-              filter-value="30"
-              href="javascript:void(0)"
-              :class="`${updateTimeOn == 30 ? 'on' : ''}`"
-              @click="changeUpdateTime(30)"
-              >一月内</a
-            >
-          </li>
-          <li class="so_sort">
-            <span class="tit">排序方式：</span>
-            <a href="javascript:void(0)"
-              :class="`${sortOn == null ? 'on' : ''}`"
-              @click="changeSort(null)">不限</a>
-            <a
-              filter-value="last_index_update_time"
-              href="javascript:void(0)"
-              :class="`${sortOn == 'last_chapter_update_time desc' ? 'on' : ''}`"
-              @click="changeSort('last_chapter_update_time desc')"
-              >更新时间</a
-            >
-            <a filter-value="word_count" href="javascript:void(0)"
-              :class="`${sortOn == 'word_count desc' ? 'on' : ''}`"
-              @click="changeSort('word_count desc')"
-              >总字数</a
-            >
-            <a
-              filter-value="visit_count"
-              href="javascript:void(0)"
-              :class="`${sortOn == 'visit_count desc' ? 'on' : ''}`"
-              @click="changeSort('visit_count desc')"
-              >点击量</a
-            >
-          </li>
-        </ul>
+  <Navbar @eventSerch="searchByK" @themeChange="changeTheme" />
+  <div class="bookclass-wrapper" :class="{'light-theme': !isDarkTheme}">
+    <div class="main-container">
+      <div class="section-header">
+        <div class="tech-line"></div>
+        <h2>作品筛选</h2>
+        <div class="tech-line"></div>
       </div>
-    </div>
-
-    <div class="channelWrap channelClassContent cf">
-      <div class="updateTable rankTable">
-        <table cellpadding="0" cellspacing="0">
+      <div class="filter-panel">
+        <div class="filter-group">
+          <span class="filter-label">作品频道：</span>
+          <a href="javascript:void(0)" :class="{'on': workDirectionOn == 0}" @click="loadCategoryList(0)">男频</a>
+          <a href="javascript:void(0)" :class="{'on': workDirectionOn == 1}" @click="loadCategoryList(1)">女频</a>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">作品分类：</span>
+          <a href="javascript:void(0)" :class="{'on': categoryOn == 0}" @click="changeCategory(0)">不限</a>
+          <a v-for="(item, index) in bookCategorys" :key="index" href="javascript:void(0)" :class="{'on': categoryOn == item.id}" @click="changeCategory(item.id)">{{ item.name }}</a>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">是否完结：</span>
+          <a href="javascript:void(0)" :class="{'on': bookStatusOn == null}" @click="changeBookStatus(null)">不限</a>
+          <a href="javascript:void(0)" :class="{'on': bookStatusOn == 0}" @click="changeBookStatus(0)">连载中</a>
+          <a href="javascript:void(0)" :class="{'on': bookStatusOn == 1}" @click="changeBookStatus(1)">已完结</a>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">作品字数：</span>
+          <a href="javascript:void(0)" :class="{'on': wordCountOn == null}" @click="changeWordCount(null, null)">不限</a>
+          <a href="javascript:void(0)" :class="{'on': wordCountOn == 0}" @click="changeWordCount(0, 300000)">30万字以下</a>
+          <a href="javascript:void(0)" :class="{'on': wordCountOn == 300000}" @click="changeWordCount(300000, 500000)">30-50万字</a>
+          <a href="javascript:void(0)" :class="{'on': wordCountOn == 500000}" @click="changeWordCount(500000, 1000000)">50-100万字</a>
+          <a href="javascript:void(0)" :class="{'on': wordCountOn == 1000000}" @click="changeWordCount(1000000, null)">100万字以上</a>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">更新时间：</span>
+          <a href="javascript:void(0)" :class="{'on': updateTimeOn == null}" @click="changeUpdateTime(null)">不限</a>
+          <a href="javascript:void(0)" :class="{'on': updateTimeOn == 3}" @click="changeUpdateTime(3)">三日内</a>
+          <a href="javascript:void(0)" :class="{'on': updateTimeOn == 7}" @click="changeUpdateTime(7)">七日内</a>
+          <a href="javascript:void(0)" :class="{'on': updateTimeOn == 15}" @click="changeUpdateTime(15)">半月内</a>
+          <a href="javascript:void(0)" :class="{'on': updateTimeOn == 30}" @click="changeUpdateTime(30)">一月内</a>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">排序方式：</span>
+          <a href="javascript:void(0)" :class="{'on': sortOn == null}" @click="changeSort(null)">不限</a>
+          <a href="javascript:void(0)" :class="{'on': sortOn == 'last_chapter_update_time desc'}" @click="changeSort('last_chapter_update_time desc')">更新时间</a>
+          <a href="javascript:void(0)" :class="{'on': sortOn == 'word_count desc'}" @click="changeSort('word_count desc')">总字数</a>
+          <a href="javascript:void(0)" :class="{'on': sortOn == 'visit_count desc'}" @click="changeSort('visit_count desc')">点击量</a>
+        </div>
+      </div>
+      <div class="section-header booklist-header">
+        <div class="tech-line"></div>
+        <h2>作品列表</h2>
+        <div class="tech-line"></div>
+      </div>
+      <div class="booklist-table-wrapper">
+        <table class="booklist-table">
           <thead>
             <tr>
-              <th class="rank">序号</th>
-              <th class="style">类别</th>
-              <th class="name">书名</th>
-              <th class="chapter">最新章节</th>
-              <th class="author">作者</th>
-              <th class="word">字数</th>
+              <th>序号</th>
+              <th>类别</th>
+              <th>书名</th>
+              <th>最新章节</th>
+              <th>作者</th>
+              <th>字数</th>
             </tr>
           </thead>
-          <tbody id="bookList">
-            <tr v-for="(item, index) in books" :key="index">
-              <td class="rank">
-                <i>{{ index + 1 }}</i>
-              </td>
-              <td class="style">
-                <a href="javascript:void(0)" @click="bookDetail(item.id)" cls="13"
-                  >[{{ item.categoryName }}]</a
-                >
-              </td>
-              <td class="name">
-                <a href="javascript:void(0)" @click="bookDetail(item.id)" v-html="item.bookName"></a>
-              </td>
-              <td class="chapter">
-                <a href="javascript:void(0)" @click="bookDetail(item.id)">{{
-                  item.lastChapterName
-                }}</a>
-              </td>
-              <td class="author">
-                <a href="javascript:void(0)" v-html="item.authorName"></a>
-              </td>
-              <td class="word">{{ wordCountFormat(item.wordCount) }}</td>
+          <tbody>
+            <tr v-for="(item, index) in books" :key="index" @click="bookDetail(item.id)" class="book-row">
+              <td><span class="rank-num">{{ index + 1 }}</span></td>
+              <td><span class="category-tag">{{ item.categoryName }}</span></td>
+              <td><span class="book-title">{{ item.bookName }}</span></td>
+              <td><span class="chapter-title">{{ item.lastChapterName }}</span></td>
+              <td><span class="author-name">{{ item.authorName }}</span></td>
+              <td><span class="word-count">{{ wordCountFormat(item.wordCount) }}</span></td>
             </tr>
           </tbody>
         </table>
-
         <el-pagination
           small
           layout="prev, pager, next"
           :background="backgroud"
           :page-size="pageSize"
           :total="total"
-          class="mt-4"
+          class="mt-4 modern-pagination"
           @current-change="handleCurrentChange"
         />
       </div>
     </div>
+    <Footer />
   </div>
-  <Footer />
 </template>
 
 <script>
@@ -343,6 +207,11 @@ export default {
       search();
     };
 
+    const isDarkTheme = ref(localStorage.getItem('theme') === 'light' ? false : true);
+    const changeTheme = (isDark) => {
+      isDarkTheme.value = isDark;
+    };
+
     return {
       ...toRefs(state),
       bookDetail,
@@ -354,7 +223,9 @@ export default {
       changeBookStatus,
       changeWordCount,
       changeUpdateTime,
-      changeSort
+      changeSort,
+      isDarkTheme,
+      changeTheme,
     };
   },
   computed: {
@@ -373,14 +244,171 @@ export default {
 };
 </script>
 
-<style>
-.el-pagination {
+<style scoped>
+.bookclass-wrapper {
+  min-height: 100vh;
+  background: #0a0a0a;
+  transition: all 0.3s;
+}
+.bookclass-wrapper.light-theme {
+  background: #f5f5f5;
+}
+.main-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 30px 20px 0 20px;
+}
+.section-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 10px 0;
+}
+.tech-line {
+  height: 1px;
+  flex: 1;
+  background: linear-gradient(90deg, transparent, rgba(33, 150, 243, 0.5), transparent);
+}
+.section-header h2 {
+  font-size: 22px;
+  margin: 0 15px;
+  text-align: center;
+  color: #fff;
+  font-weight: 500;
+}
+.bookclass-wrapper.light-theme .section-header h2 {
+  color: #222;
+}
+.filter-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px 30px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 8px;
+  padding: 18px 20px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 10px rgba(33,150,243,0.05);
+}
+.bookclass-wrapper.light-theme .filter-panel {
+  background: rgba(0,0,0,0.03);
+}
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.filter-label {
+  color: #2196f3;
+  font-weight: 500;
+  margin-right: 5px;
+}
+.filter-group a {
+  color: #b0bec5;
+  text-decoration: none;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: all 0.2s;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+.bookclass-wrapper.light-theme .filter-group a {
+  color: #444;
+}
+.filter-group a.on, .filter-group a:hover {
+  background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+  color: #fff;
+  border: 1px solid #4facfe;
+}
+.bookclass-wrapper.light-theme .filter-group a.on, .bookclass-wrapper.light-theme .filter-group a:hover {
+  color: #fff;
+}
+.booklist-header {
+  margin-top: 40px;
+}
+.booklist-table-wrapper {
+  background: rgba(255,255,255,0.03);
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(33,150,243,0.05);
+  padding: 20px;
+  margin-bottom: 40px;
+}
+.bookclass-wrapper.light-theme .booklist-table-wrapper {
+  background: rgba(0,0,0,0.03);
+}
+.booklist-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+.booklist-table th, .booklist-table td {
+  padding: 12px 8px;
+  text-align: left;
+  color: #b0bec5;
+  font-size: 15px;
+}
+.booklist-table th {
+  color: #2196f3;
+  font-weight: 600;
+  background: rgba(33,150,243,0.05);
+}
+.bookclass-wrapper.light-theme .booklist-table th {
+  color: #1a237e;
+  background: rgba(33,150,243,0.03);
+}
+.bookclass-wrapper.light-theme .booklist-table td {
+  color: #222;
+}
+.book-row {
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.book-row:hover {
+  background: rgba(33,150,243,0.08);
+}
+.bookclass-wrapper.light-theme .book-row:hover {
+  background: rgba(33,150,243,0.12);
+}
+.rank-num {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  background: #2196f3;
+  color: #fff;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 28px;
+  font-weight: bold;
+  font-size: 15px;
+}
+.category-tag {
+  background: rgba(33,150,243,0.12);
+  color: #2196f3;
+  border-radius: 3px;
+  padding: 2px 8px;
+  font-size: 13px;
+}
+.book-title {
+  font-weight: 600;
+  color: #fff;
+}
+.bookclass-wrapper.light-theme .book-title {
+  color: #1a237e;
+}
+.chapter-title {
+  color: #2196f3;
+}
+.author-name {
+  color: #888;
+}
+.word-count {
+  color: #2196f3;
+  font-weight: 500;
+}
+.modern-pagination {
+  display: flex;
   justify-content: center;
-}
-.el-pagination.is-background .el-pager li:not(.is-disabled).is-active {
-  background-color: #f80 !important;
-}
-.el-pagination {
-  --el-pagination-hover-color: #f80 !important;
 }
 </style>
