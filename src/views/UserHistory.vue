@@ -7,48 +7,51 @@
       <div class="my_r">
         <div class="my_bookshelf">
           <div class="title cf">
-            <h2 class="fl">我的书评</h2>
+            <h2 class="fl">历史记录</h2>
             <div class="fr"></div>
           </div>
           <div class="bookComment">
-            <div v-if="total == 0" class="no_contet no_comment" >
-              您还没有发表过评论！
+            <div v-if="total == 0" class="no_contet no_history" >
+              您还没有阅读过小说哦！
             </div>
             <!-- 列表展示 -->
             <div v-else class="dataTable">
               <table>
                 <thead>
                 <tr>
-                  <th>评论时间</th>
+                  <th>最后阅读时间</th>
                   <th>书名</th>
-                  <th>评论内容</th>
+                  <th>章节名</th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr v-for="(log, index) in userComments" :key="log.id || `empty-${index}`">
-                  <!-- 评论时间 -->
+                <tr v-for="(log, index) in readHistory" :key="log.id || `empty-${index}`">
                   <td v-if="log.empty"></td>
-                  <td v-else>{{ formatDate(log.createTime) }}</td>
+                  <td v-else>{{ formatDate(log.updateTime) }}</td>
 
-                  <!-- 书籍名称 -->
                   <td v-if="log.empty"></td>
                   <td v-else>
                     <router-link
-                        :to="{ name: 'book', params: { id: log.book_id } }"
+                        :to="{ name: 'book', params: { id: log.bookId } }"
                         class="book-name-link"
                     >
-                      {{ log.book_name }}
+                      {{ log.bookName }}
                     </router-link>
                   </td>
 
-                  <!-- 评论内容 -->
                   <td v-if="log.empty"></td>
-                  <td v-else class="comment-content">{{ log.comment_content }}</td>
+                  <td v-else>
+                    <router-link
+                        :to="{ name: 'book', params: { id: log.bookId + '/' + log.preContentId } }"
+                        class="chapter-name-link"
+                    >
+                      {{ log.preChapterName }}
+                    </router-link>
+                  </td>
                 </tr>
                 </tbody>
               </table>
             </div>
-
 
 
             <el-pagination
@@ -71,7 +74,7 @@
 <script>
 import "@/assets/styles/user.css";
 import man from "@/assets/images/man.png";
-import { listComments } from '@/api/book'
+import { listHistory } from '@/api/user'
 import { reactive, toRefs, onMounted, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import Header from "@/components/common/Header";
@@ -79,7 +82,7 @@ import Footer from "@/components/common/Footer";
 import UserMenu from "@/components/user/Menu";
 import {getUid} from "@/utils/auth";
 export default {
-  name: "userRecord",
+  name: "userHistory",
   components: {
     Header,
     Footer,
@@ -92,7 +95,7 @@ export default {
     const state = reactive({
       pageSize: 8,
       pageNum: 1,
-      userComments:[],
+      readHistory:[],
       total: 0,
       baseUrl: process.env.VUE_APP_BASE_API_URL,
       imgBaseUrl: process.env.VUE_APP_BASE_IMG_URL,
@@ -107,37 +110,37 @@ export default {
     };
     const handlePageChange = (pageNum) => {
       state.pageNum = pageNum;
-      loadUserComments(); // 重新加载当前页数据
+      loadReadHistory(); // 重新加载当前页数据
     };
-    const loadUserComments = async () => {
+    const loadReadHistory = async () => {
       const params={
-        userId:Number(getUid()),
+        // userId:Number(getUid()),
         pageNum:state.pageNum,
         pageSize:state.pageSize
       }
       try{
-        const res = await listComments(params);
-        console.log("获取书评信息"+res);
+        const res = await listHistory(params);
+        console.log('获取阅读历史记录成功', res);
         if(res.ok){
           state.total = Number(res.data.total);
           // 填充空数据
-          const comments = res.data.list || [];
-          const remaining = state.pageSize - comments.length;
+          const history = res.data.list || [];
+          const remaining = state.pageSize - history.length;
 
           if (remaining > 0) {
             for (let i = 0; i < remaining; i++) {
-              comments.push({ empty: true }); // 使用 empty 标记为空行
+              history.push({ empty: true }); // 使用 empty 标记为空行
             }
           }
 
-          state.userComments = comments;
+          state.readHistory = history;
         }
       }catch (err){
-        console.error('获取书评信息失败', err);
+        console.error('获取流水信息失败', err);
       }
     };
     onMounted(async () => {
-      await loadUserComments();
+      await loadReadHistory();
     });
 
     return {
@@ -152,21 +155,6 @@ export default {
 </script>
 
 <style scoped>
-.comment-content {
-  max-width: 400px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.dataTable td {
-  vertical-align: middle;
-}
-
-.dataTable th,
-.dataTable td {
-  text-align: center;
-  padding: 10px;
-}
 .book-name-link {
   color: #333;
   text-decoration: none;
@@ -176,6 +164,19 @@ export default {
 
 .book-name-link:hover {
   color: #f80;
+}
+
+/* 修改后的章节名样式 */
+.chapter-name-link:hover {
+  color: #f80;
+}
+.chapter-name {
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 14px;
+  color: #333;
 }
 
 .el-pagination {
@@ -765,3 +766,4 @@ export default {
   line-height: 1.8;
 }
 </style>
+

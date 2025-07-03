@@ -635,28 +635,6 @@ export default {
 <style scoped>
 @charset "utf-8";
 
-/* 翻页按钮悬停和点击样式 */
-.nextPageBox a:hover,
-.nextPageBox a:active {
-  background-color: #f80 !important;
-  color: #fff !important;
-  border-color: #f80 !important;
-}
-
-/* 浮动菜单按钮悬停和点击样式 */
-.menu_right li a:hover,
-.menu_right li a:active {
-  background-color: #f80 !important;
-  color: #fff !important;
-  border-color: #f80 !important;
-}
-
-.menu_right li a:hover i,
-.menu_right li a:active i {
-  color: #fff !important;
-}
-
-
 /* 余额不足弹窗 */
 .rechargeDialog {
   width: 400px;

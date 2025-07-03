@@ -39,3 +39,7 @@ export function listComments(params) {
 export function deleteUser() {
     return request.delete("/front/user/delete");
 }
+
+export function listHistory(params) {
+    return request.get('/front/user/read_history', { params });
+}

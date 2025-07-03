@@ -7,48 +7,39 @@
       <div class="my_r">
         <div class="my_bookshelf">
           <div class="title cf">
-            <h2 class="fl">我的书评</h2>
+            <h2 class="fl">流水信息</h2>
             <div class="fr"></div>
           </div>
           <div class="bookComment">
-            <div v-if="total == 0" class="no_contet no_comment" >
-              您还没有发表过评论！
+            <div v-if="total == 0" class="no_contet no_record" >
+              您还没有使用或获取过书币哦！
             </div>
             <!-- 列表展示 -->
             <div v-else class="dataTable">
               <table>
                 <thead>
                 <tr>
-                  <th>评论时间</th>
-                  <th>书名</th>
-                  <th>评论内容</th>
+                  <th>操作时间</th>
+                  <th>描述</th>
+                  <th>余额变动</th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr v-for="(log, index) in userComments" :key="log.id || `empty-${index}`">
-                  <!-- 评论时间 -->
+                <tr v-for="(log, index) in walletLogs" :key="log.id || `empty-${index}`">
                   <td v-if="log.empty"></td>
-                  <td v-else>{{ formatDate(log.createTime) }}</td>
+                  <td v-else>{{ formatDate(log.createdAt) }}</td>
 
-                  <!-- 书籍名称 -->
                   <td v-if="log.empty"></td>
-                  <td v-else>
-                    <router-link
-                        :to="{ name: 'book', params: { id: log.book_id } }"
-                        class="book-name-link"
-                    >
-                      {{ log.book_name }}
-                    </router-link>
+                  <td v-else>{{ log.subject }}</td>
+
+                  <td v-if="log.empty"></td>
+                  <td v-else :class="{'text-red': log.amount.startsWith('-'),'text-green': !log.amount.startsWith('-')}">
+                    {{ formatAmount(log.amount) }}
                   </td>
-
-                  <!-- 评论内容 -->
-                  <td v-if="log.empty"></td>
-                  <td v-else class="comment-content">{{ log.comment_content }}</td>
                 </tr>
                 </tbody>
               </table>
             </div>
-
 
 
             <el-pagination
@@ -71,7 +62,7 @@
 <script>
 import "@/assets/styles/user.css";
 import man from "@/assets/images/man.png";
-import { listComments } from '@/api/book'
+import { getWalletLog } from '@/api/payment'
 import { reactive, toRefs, onMounted, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import Header from "@/components/common/Header";
@@ -92,7 +83,7 @@ export default {
     const state = reactive({
       pageSize: 8,
       pageNum: 1,
-      userComments:[],
+      walletLogs:[],
       total: 0,
       baseUrl: process.env.VUE_APP_BASE_API_URL,
       imgBaseUrl: process.env.VUE_APP_BASE_IMG_URL,
@@ -107,37 +98,36 @@ export default {
     };
     const handlePageChange = (pageNum) => {
       state.pageNum = pageNum;
-      loadUserComments(); // 重新加载当前页数据
+      loadWalletLog(); // 重新加载当前页数据
     };
-    const loadUserComments = async () => {
+    const loadWalletLog = async () => {
       const params={
         userId:Number(getUid()),
         pageNum:state.pageNum,
         pageSize:state.pageSize
       }
       try{
-        const res = await listComments(params);
-        console.log("获取书评信息"+res);
+        const res = await getWalletLog(params);
         if(res.ok){
           state.total = Number(res.data.total);
           // 填充空数据
-          const comments = res.data.list || [];
-          const remaining = state.pageSize - comments.length;
+          const logs = res.data.walletLogs || [];
+          const remaining = state.pageSize - logs.length;
 
           if (remaining > 0) {
             for (let i = 0; i < remaining; i++) {
-              comments.push({ empty: true }); // 使用 empty 标记为空行
+              logs.push({ empty: true }); // 使用 empty 标记为空行
             }
           }
 
-          state.userComments = comments;
+          state.walletLogs = logs;
         }
       }catch (err){
-        console.error('获取书评信息失败', err);
+        console.error('获取流水信息失败', err);
       }
     };
     onMounted(async () => {
-      await loadUserComments();
+      await loadWalletLog();
     });
 
     return {
@@ -152,32 +142,12 @@ export default {
 </script>
 
 <style scoped>
-.comment-content {
-  max-width: 400px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.text-red {
+  color: red;
 }
-.dataTable td {
-  vertical-align: middle;
+.text-green {
+  color: green;
 }
-
-.dataTable th,
-.dataTable td {
-  text-align: center;
-  padding: 10px;
-}
-.book-name-link {
-  color: #333;
-  text-decoration: none;
-  font-size: 15px;     /* 加大字体 */
-  font-weight: bold;   /* 加粗显示 */
-}
-
-.book-name-link:hover {
-  color: #f80;
-}
-
 .el-pagination {
   justify-content: center;
 }
@@ -765,3 +735,4 @@ export default {
   line-height: 1.8;
 }
 </style>
+

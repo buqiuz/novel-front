@@ -80,6 +80,16 @@ const router = createRouter({
       component: () => import('@/views/UserRecord')
     },
     {
+      path: '/user/history',
+      name: 'userHistory',
+      component: () => import('@/views/UserHistory')
+    },
+    {
+      path: '/user/bookshelf',
+      name: 'userBookshelf',
+      component: () => import('@/views/UserBookshelf')
+    },
+    {
       path: '/author/register',
       name: 'authorRegister',
       component: () => import('@/views/author/Register')

@@ -12,7 +12,17 @@
         >
       </li>
       <li>
-        <router-link :class="`${routeName == 'userRecord' ? 'link_2 on' : 'link_2'}`" :to="{ name: 'userRecord' }"
+        <router-link :class="`${routeName == 'userRecord' ? 'link_4 on' : 'link_4'}`" :to="{ name: 'userRecord' }"
+        >我的书架</router-link
+        >
+      </li>
+      <li>
+        <router-link :class="`${routeName == 'userHistory' ? 'link_5 on' : 'link_5'}`" :to="{ name: 'userHistory' }"
+        >阅读历史</router-link
+        >
+      </li>
+      <li>
+        <router-link :class="`${routeName == 'userBookshelf' ? 'link_2 on' : 'link_2'}`" :to="{ name: 'userBookshelf' }"
         >流水查询</router-link
         >
       </li>
