@@ -1,7 +1,7 @@
 <template>
   <div class="header">
-    <Top @eventSerch="searchByK" />
-    <Navbar />
+<!--    <Top @eventSerch="searchByK" />-->
+    <Navbar @eventSerch="searchByK"/>
   </div>
 
   <div class="main box_center cf">

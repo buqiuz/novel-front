@@ -12,7 +12,7 @@ export default {
   name: "Header",
   components: {
     Navbar,
-    Top,
+    // Top,
   },
 };
 </script>
