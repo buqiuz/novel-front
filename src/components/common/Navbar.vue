@@ -54,7 +54,7 @@
 <!--</script>-->
 
 <template>
-  <header class="tech-navbar">
+  <header class="tech-navbar" :class="{ 'light-theme': !isDarkTheme }">
     <div class="container">
       <div class="navbar-content">
         <!-- Logo区域 -->
@@ -89,6 +89,14 @@
               <i class="search-icon">🔍</i>
             </button>
           </div>
+        </div>
+
+        <!-- 主题切换按钮 -->
+        <div class="theme-toggle">
+          <button @click="toggleTheme" class="theme-btn">
+            <span v-if="isDarkTheme">☀️</span>
+            <span v-else>🌙</span>
+          </button>
         </div>
 
         <!-- 用户信息区域 -->
@@ -126,7 +134,7 @@
 </template>
 
 <script>
-import { reactive, toRefs, onMounted } from "vue";
+import { reactive, toRefs, onMounted, ref, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { getToken, getNickName, getGoldCoin, setGoldCoin, removeToken, removeNickName, removeUid } from "@/utils/auth";
 import { getGoldBalance } from "@/api/payment";
@@ -135,6 +143,7 @@ import { getAuthorStatus } from "@/api/author";
 
 export default {
   name: "ModernNavbar",
+  emits: ['themeChange'],
   setup(props, context) {
     const state = reactive({
       keyword: "",
@@ -142,6 +151,7 @@ export default {
       token: getToken(),
       goldCoin: getGoldCoin(),
       userId: null,
+      isDarkTheme: localStorage.getItem('theme') === 'light' ? false : true,
     });
 
     const route = useRoute();
@@ -163,6 +173,14 @@ export default {
           state.goldCoin = 0;
         }
       }
+    };
+
+    // 主题切换
+    const toggleTheme = () => {
+      state.isDarkTheme = !state.isDarkTheme;
+      localStorage.setItem('theme', state.isDarkTheme ? 'dark' : 'light');
+      document.body.setAttribute('data-theme', state.isDarkTheme ? 'dark' : 'light');
+      context.emit('themeChange', state.isDarkTheme);
     };
 
     // 作家专区跳转
@@ -188,13 +206,18 @@ export default {
       window.open(routeUrl.href, "_blank");
     };
 
-    onMounted(async () => {
+    onMounted(() => {
+      // 页面加载时设置主题
+      document.body.setAttribute('data-theme', state.isDarkTheme ? 'dark' : 'light');
+      context.emit('themeChange', state.isDarkTheme);
+
       if(state.token){
-        const userInfo = await getUserinfo();
-        if (userInfo) {
-          state.userId = userInfo.data.id;
-        }
-        await fetchGoldCoin(); // 页面加载时获取金币
+        getUserinfo().then(userInfo => {
+          if (userInfo) {
+            state.userId = userInfo.data.id;
+            fetchGoldCoin();
+          }
+        });
       }
     });
 
@@ -216,6 +239,7 @@ export default {
       searchByK,
       logout,
       goAuthor,
+      toggleTheme,
     };
   },
 };
@@ -223,7 +247,7 @@ export default {
 
 <style scoped>
 .tech-navbar {
-  background: linear-gradient(90deg, #0a0d23 0%, #1a237e 100%);
+  background: #000000;
   color: white;
   position: sticky;
   top: 0;
@@ -232,6 +256,14 @@ export default {
   height: 60px;
   padding: 0;
   border-bottom: 1px solid rgba(100, 158, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.tech-navbar.light-theme {
+  background: linear-gradient(90deg, #ffffff 0%, #f5f5f5 100%);
+  color: #333;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .container {
@@ -315,8 +347,16 @@ export default {
   letter-spacing: 0.5px;
 }
 
+.light-theme .nav-item a {
+  color: #555;
+}
+
 .nav-item a:hover {
   color: #ffffff;
+}
+
+.light-theme .nav-item a:hover {
+  color: #000;
 }
 
 .nav-item a::after {
@@ -340,6 +380,10 @@ export default {
   color: white;
 }
 
+.light-theme .nav-item a.router-link-active {
+  color: #1a237e;
+}
+
 /* 搜索区域 */
 .search-area {
   margin-right: 20px;
@@ -356,10 +400,20 @@ export default {
   transition: all 0.3s;
 }
 
+.light-theme .search-box {
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
 .search-box:focus-within {
   background: rgba(255, 255, 255, 0.15);
   box-shadow: 0 0 15px rgba(79, 172, 254, 0.3);
   border: 1px solid rgba(79, 172, 254, 0.5);
+}
+
+.light-theme .search-box:focus-within {
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 15px rgba(79, 172, 254, 0.2);
 }
 
 .search-input {
@@ -372,8 +426,16 @@ export default {
   outline: none;
 }
 
+.light-theme .search-input {
+  color: #333;
+}
+
 .search-input::placeholder {
   color: rgba(255, 255, 255, 0.5);
+}
+
+.light-theme .search-input::placeholder {
+  color: rgba(0, 0, 0, 0.4);
 }
 
 .search-btn {
@@ -388,9 +450,56 @@ export default {
   transition: all 0.3s;
 }
 
+.light-theme .search-btn {
+  color: rgba(0, 0, 0, 0.5);
+}
+
 .search-btn:hover {
   color: white;
   background-color: rgba(79, 172, 254, 0.2);
+}
+
+.light-theme .search-btn:hover {
+  color: #000;
+  background-color: rgba(79, 172, 254, 0.1);
+}
+
+/* 主题切换按钮 */
+.theme-toggle {
+  margin-right: 15px;
+}
+
+.theme-btn {
+  background: transparent;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: white;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.light-theme .theme-btn {
+  color: #333;
+  background-color: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.theme-btn:hover {
+  transform: rotate(30deg);
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.light-theme .theme-btn:hover {
+  background-color: rgba(0, 0, 0, 0.1);
 }
 
 /* 用户区域 */
@@ -421,10 +530,21 @@ export default {
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
+.light-theme .btn-login {
+  color: #666;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
 .btn-login:hover {
   color: white;
   border-color: rgba(255, 255, 255, 0.4);
   background: rgba(255, 255, 255, 0.1);
+}
+
+.light-theme .btn-login:hover {
+  color: #333;
+  border-color: rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .btn-register {
@@ -458,8 +578,16 @@ export default {
   background: rgba(255, 255, 255, 0.1);
 }
 
+.light-theme .user-trigger {
+  background: rgba(0, 0, 0, 0.05);
+}
+
 .user-trigger:hover {
   background: rgba(255, 255, 255, 0.15);
+}
+
+.light-theme .user-trigger:hover {
+  background: rgba(0, 0, 0, 0.1);
 }
 
 .username {
@@ -472,9 +600,17 @@ export default {
   white-space: nowrap;
 }
 
+.light-theme .username {
+  color: #333;
+}
+
 .dropdown-icon {
   font-size: 10px;
   color: rgba(255, 255, 255, 0.7);
+}
+
+.light-theme .dropdown-icon {
+  color: rgba(0, 0, 0, 0.5);
 }
 
 .dropdown-menu {
@@ -482,7 +618,7 @@ export default {
   top: 100%;
   right: 0;
   width: 150px;
-  background: #1a237e;
+  background: #000000;
   border-radius: 4px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
   margin-top: 5px;
@@ -493,6 +629,12 @@ export default {
   transition: all 0.3s;
   z-index: 10;
   border: 1px solid rgba(100, 158, 255, 0.2);
+}
+
+.light-theme .dropdown-menu {
+  background: white;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .user-dropdown-wrapper:hover .dropdown-menu {
@@ -510,9 +652,18 @@ export default {
   font-size: 14px;
 }
 
+.light-theme .dropdown-item {
+  color: #666;
+}
+
 .dropdown-item:hover {
   background: rgba(79, 172, 254, 0.2);
   color: white;
+}
+
+.light-theme .dropdown-item:hover {
+  background: rgba(79, 172, 254, 0.1);
+  color: #333;
 }
 
 .coin-display {
@@ -523,6 +674,11 @@ export default {
   border-radius: 15px;
   border: 1px solid rgba(255, 215, 0, 0.3);
   position: relative;
+}
+
+.light-theme .coin-display {
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.2);
 }
 
 .coin-display::before {

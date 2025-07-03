@@ -1,6 +1,6 @@
 <template>
-  <Header />
-  <div class="page-wrapper">
+  <Navbar @themeChange="changeTheme" />
+  <div class="page-wrapper" :class="{'light-theme': !isDarkTheme}">
     <!-- 左侧装饰元素 -->
     <div class="side-decoration left-side">
       <div class="tech-circle"></div>
@@ -12,7 +12,7 @@
     </div>
 
     <div class="content-container">
-      <div class="main-container tech-theme">
+      <div class="main-container tech-theme" :class="{'light-theme': !isDarkTheme}">
         <!-- 炫酷轮播图部分 -->
         <div class="hero-carousel">
           <div class="carousel-container">
@@ -347,13 +347,13 @@ import { listVisitRankBooks } from "@/api/book";
 import { listNewestRankBooks } from "@/api/book";
 import { listUpdateRankBooks } from "@/api/book";
 import { ElMessage, ElLoading } from "element-plus";
-import Header from "@/components/common/Header";
+import Navbar from "@/components/common/Navbar";
 import Footer from "@/components/common/Footer";
 import FriendLink from "@/components/home/FriendLink";
 export default {
   name: "home",
   components: {
-    Header,
+    Navbar,
     FriendLink,
     Footer,
   },
@@ -378,6 +378,7 @@ export default {
       // 更新榜单
       updateBooks: [],
       imgBaseUrl: process.env.VUE_APP_BASE_IMG_URL,
+      isDarkTheme: localStorage.getItem('theme') === 'light' ? false : true,
     });
 
     onMounted(async () => {
@@ -438,9 +439,14 @@ export default {
       router.push({ path: `/book/${bookId}` });
     };
 
+    const changeTheme = (isDark) => {
+      state.isDarkTheme = isDark;
+    };
+
     return {
       ...toRefs(state),
       bookDetail,
+      changeTheme,
     };
   },
 };
@@ -455,6 +461,11 @@ export default {
   background-color: #0a0a0a;
   position: relative;
   overflow-x: hidden;
+  transition: all 0.3s ease;
+}
+
+.page-wrapper.light-theme {
+  background-color: #f5f5f5;
 }
 
 /* 内容容器 */
@@ -482,6 +493,14 @@ export default {
 
 .right-side {
   right: 0;
+  border-left: 1px solid rgba(33, 150, 243, 0.1);
+}
+
+.light-theme .left-side {
+  border-right: 1px solid rgba(33, 150, 243, 0.1);
+}
+
+.light-theme .right-side {
   border-left: 1px solid rgba(33, 150, 243, 0.1);
 }
 
@@ -616,6 +635,11 @@ export default {
   border: 1px solid rgba(33, 150, 243, 0.3);
 }
 
+.light-theme .tech-carousel .el-carousel__item {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(33, 150, 243, 0.2);
+}
+
 .carousel-content {
   height: 100%;
   cursor: pointer;
@@ -643,6 +667,10 @@ export default {
   height: 70%;
   background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
   z-index: 1;
+}
+
+.light-theme .gradient-overlay {
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
 }
 
 .book-info {
@@ -705,6 +733,11 @@ export default {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+.light-theme .top-book.featured {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
 .top-book.featured .book-cover {
   height: 100%;
 }
@@ -762,9 +795,17 @@ export default {
   transition: all 0.3s ease;
 }
 
+.light-theme .top-book-item {
+  background: rgba(0, 0, 0, 0.03);
+}
+
 .top-book-item:hover {
   background: rgba(255, 255, 255, 0.1);
   transform: translateY(-2px);
+}
+
+.light-theme .top-book-item:hover {
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .rank-num {
@@ -794,10 +835,18 @@ export default {
   color: #fff;
 }
 
+.light-theme .mini-details h4 {
+  color: #333;
+}
+
 .mini-details p {
   margin: 0;
   color: #aaa;
   font-size: 14px;
+}
+
+.light-theme .mini-details p {
+  color: #666;
 }
 
 /* 本周强推样式 */
@@ -818,6 +867,11 @@ export default {
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+.light-theme .weekly-book {
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
 .glow-effect {
   position: absolute;
   width: 150%;
@@ -833,6 +887,10 @@ export default {
 .weekly-book:hover {
   transform: translateY(-5px);
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.light-theme .weekly-book:hover {
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
 .weekly-book:hover .glow-effect {
@@ -863,10 +921,18 @@ export default {
   color: #fff;
 }
 
+.light-theme .book-info h3 {
+  color: #333;
+}
+
 .book-info .author {
   color: #aaa;
   font-size: 14px;
   margin-bottom: 10px;
+}
+
+.light-theme .book-info .author {
+  color: #666;
 }
 
 .book-info .desc {
@@ -877,6 +943,10 @@ export default {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.light-theme .book-info .desc {
+  color: #555;
 }
 
 .tech-tag {
@@ -904,6 +974,11 @@ export default {
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+.light-theme .ranking-column {
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
 .rank-header {
   display: flex;
   justify-content: space-between;
@@ -913,10 +988,18 @@ export default {
   padding-bottom: 10px;
 }
 
+.light-theme .rank-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
 .rank-header h3 {
   margin: 0;
   color: #fff;
   font-size: 18px;
+}
+
+.light-theme .rank-header h3 {
+  color: #333;
 }
 
 .view-more {
@@ -941,8 +1024,16 @@ export default {
   cursor: pointer;
 }
 
+.light-theme .rank-item {
+  background: rgba(0, 0, 0, 0.01);
+}
+
 .rank-item:hover {
   background: rgba(255, 255, 255, 0.08);
+}
+
+.light-theme .rank-item:hover {
+  background: rgba(0, 0, 0, 0.03);
 }
 
 .rank-num {
@@ -980,6 +1071,10 @@ export default {
   max-width: 150px;
 }
 
+.light-theme .rank-info h4 {
+  color: #333;
+}
+
 .rank-info p {
   margin: 0;
   color: #aaa;
@@ -988,6 +1083,10 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 150px;
+}
+
+.light-theme .rank-info p {
+  color: #666;
 }
 
 /* 热门推荐 - 书籍卡片 */
@@ -1006,9 +1105,18 @@ export default {
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+.light-theme .book-card {
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
 .book-card:hover {
   transform: translateY(-8px);
   box-shadow: 0 15px 25px rgba(0, 0, 0, 0.4);
+}
+
+.light-theme .book-card:hover {
+  box-shadow: 0 15px 25px rgba(0, 0, 0, 0.1);
 }
 
 .card-image {
@@ -1042,6 +1150,10 @@ export default {
   padding: 20px;
   opacity: 0;
   transition: opacity 0.3s ease;
+}
+
+.light-theme .hover-info {
+  background: rgba(0, 0, 0, 0.6);
 }
 
 .book-card:hover .hover-info {
@@ -1086,10 +1198,18 @@ export default {
   text-overflow: ellipsis;
 }
 
+.light-theme .card-content h3 {
+  color: #333;
+}
+
 .card-content p {
   margin: 0 0 8px 0;
   color: #aaa;
   font-size: 14px;
+}
+
+.light-theme .card-content p {
+  color: #666;
 }
 
 .tech-tags {
@@ -1122,10 +1242,18 @@ export default {
   border: 1px solid rgba(33, 150, 243, 0.3);
 }
 
+.light-theme .premium-carousel .el-carousel__container {
+  border: 1px solid rgba(33, 150, 243, 0.2);
+}
+
 .premium-item {
   display: flex;
   height: 100%;
   background: rgba(0, 0, 0, 0.5);
+}
+
+.light-theme .premium-item {
+  background: rgba(0, 0, 0, 0.03);
 }
 
 .premium-cover {
@@ -1148,10 +1276,18 @@ export default {
   margin: 0 0 10px 0;
 }
 
+.light-theme .premium-details h3 {
+  color: #333;
+}
+
 .premium-details .author {
   color: #ccc;
   font-size: 16px;
   margin-bottom: 15px;
+}
+
+.light-theme .premium-details .author {
+  color: #666;
 }
 
 .premium-details .desc {
@@ -1162,6 +1298,10 @@ export default {
   -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.light-theme .premium-details .desc {
+  color: #555;
 }
 
 /* 响应式设计 */
@@ -1212,6 +1352,41 @@ export default {
   padding: 20px;
   color: #fff;
   background-color: #121212;
+  transition: all 0.3s ease;
+}
+
+.main-container.light-theme {
+  color: #333;
+  background-color: #ffffff;
+}
+
+/* 章节标题 */
+.section-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 10px 0;
+}
+
+.tech-line {
+  height: 1px;
+  flex: 1;
+  background: linear-gradient(90deg, transparent, rgba(33, 150, 243, 0.5), transparent);
+}
+
+.section-header h2 {
+  font-size: 24px;
+  margin: 0 15px;
+  text-align: center;
+  color: #fff;
+  font-weight: 500;
+}
+
+.light-theme .section-header h2 {
+  color: #333;
+}
+
+.light-theme .tech-line {
+  background: linear-gradient(90deg, transparent, rgba(33, 150, 243, 0.3), transparent);
 }
 </style>
-
