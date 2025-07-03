@@ -45,21 +45,10 @@
             >
           </div>
           <div class="btns" id="optBtn">
-            <a
-              href="javascript:void(0)"
-              @click="bookContent(book.id, book.firstChapterId)"
-              class="btn_ora"
-              >点击阅读</a
-            >
-            <!--
-            <span id="cFavs"
-              ><a
-                href="javascript:void(0);"
-                class="btn_ora_white btn_addsj"
-                onclick="javascript:BookDetail.AddFavorites(37,0,0);"
-                >加入书架</a
-              >
-            </span>-->
+            <a href="javascript:void(0)" @click="bookContent(book.id, book.firstChapterId)" class="btn_ora">点击阅读</a>
+            <a :href="'javascript:void(0)'" @click="toggleBookshelf()" :class="['btn_ora', { 'btn_ora_white': isInBookshelf }]">
+              {{ isInBookshelf ? '已加入书架' : '加入书架' }}
+            </a>
           </div>
         </div>
       </div>
@@ -340,7 +329,7 @@ import {
   listRecBooks,
   listNewestComments,
 } from "@/api/book";
-import { comment, deleteComment, updateComment } from "@/api/user";
+import {addBookshelf, comment, deleteBookshelf, deleteComment, isInBookshelf, updateComment} from "@/api/user";
 import { getUid } from "@/utils/auth";
 import Header from "@/components/common/Header";
 import Footer from "@/components/common/Footer";
@@ -368,6 +357,7 @@ export default {
       dialogUpdateCommentFormVisible: false,
       commentId: "",
       updateComment: "",
+      isInBookshelf: false,
     });
     onMounted(() => {
       const bookId = route.params.id;
@@ -375,6 +365,7 @@ export default {
       loadRecBooks(bookId);
       loadLastChapterAbout(bookId);
       loadNewestComments(bookId);
+      checkIfInBookshelf(bookId);
     });
 
     onUpdated(() => {
@@ -385,6 +376,25 @@ export default {
           .setAttribute("onerror", "this.src='default.gif';this.onerror=null");
       }
     });
+    // 定义 toggleBookshelf 方法
+    const toggleBookshelf = async () => {
+      if (state.isInBookshelf) {
+        // 如果已经在书架中，则删除它
+        await deleteBookshelf({ bookId: state.book.id});
+      } else {
+        // 否则添加到书架
+        await addBookshelf({ bookId: state.book.id,preContentId: state.book.lastChapterId  });
+      }
+      // 更新 isInBookshelf 状态
+      await checkIfInBookshelf(state.book.id);
+    };
+    // 检查书籍是否在书架中的函数
+    const checkIfInBookshelf = async (bookId) => {
+      const { data } = await isInBookshelf({ bookId });
+      state.isInBookshelf = data;
+      console.log("isInBookshelf", state.isInBookshelf);
+    };
+
 
     const loadBook = async (bookId) => {
       const { data } = await getBookById(bookId);
@@ -392,7 +402,7 @@ export default {
       document
         .getElementById("bookCover")
         .setAttribute("onerror", "this.src='default.gif';this.onerror=null");
-      addBookVisit(bookId);
+      await addBookVisit(bookId);
     };
 
     const loadRecBooks = async (bookId) => {
@@ -414,7 +424,8 @@ export default {
       loadBook(bookId);
       loadRecBooks(bookId);
       loadLastChapterAbout(bookId);
-      loadNewestComments(bookId);
+      loadNewestComments(bookId)
+      checkIfInBookshelf(bookId);
     };
 
     const chapterList = (bookId) => {
@@ -422,7 +433,7 @@ export default {
     };
 
     const addBookVisit = async (bookId) => {
-      addVisitCount({ bookId: bookId });
+      await addVisitCount({bookId: bookId});
     };
 
     const loadNewestComments = async (bookId) => {
@@ -448,7 +459,7 @@ export default {
         commentContent: state.commentContent,
       });
       state.commentContent = "";
-      loadNewestComments(state.book.id);
+      await loadNewestComments(state.book.id);
     };
 
     const updateUserComment = async (id, comment) => {
@@ -459,13 +470,13 @@ export default {
 
     const deleteUserComment = async (id) => {
       await deleteComment(id);
-      loadNewestComments(state.book.id);
+      await loadNewestComments(state.book.id);
     };
 
     const goUpdateComment = async (id) => {
       state.dialogUpdateCommentFormVisible = false;
       await updateComment(state.commentId, { content: state.updateComment });
-      loadNewestComments(state.book.id);
+      await loadNewestComments(state.book.id);
     };
 
     return {
@@ -481,6 +492,7 @@ export default {
       man,
       updateUserComment,
       goUpdateComment,
+      toggleBookshelf,
     };
   },
   mounted() {
@@ -528,4 +540,10 @@ export default {
 .el-button {
   --el-button-hover-bg-color: #ff880061;
 }
+.btn_ora_white {
+  background-color: #fff; /* 白色背景 */
+  color: #f80; /* 橙色文字 */
+  border: 1px solid #f80; /* 橙色边框 */
+}
+
 </style>
