@@ -200,10 +200,10 @@ export default {
         return;
       }
 
-      let routeUrl = router.resolve({
-        name: "authorBookList",
+      // 直接在当前窗口导航，不再使用新窗口
+      router.push({
+        name: "authorBookList"
       });
-      window.open(routeUrl.href, "_blank");
     };
 
     onMounted(() => {
