@@ -1,59 +1,118 @@
 <template>
-  <AuthorHeader />
-  <div class="main box_center cf">
-    <div class="userBox cf">
-      <div class="my_l">
-        <ul class="log_list">
-          <li>
-            <router-link class="link_4 on" :to="{ name: 'authorBookList' }"
-              >小说管理</router-link
-            >
-          </li>
-          <!--<li><a class="link_1 " href="/user/userinfo.html">批量小说爬取</a></li>
-<li><a class="link_4 " href="/user/favorites.html">单本小说爬取</a></li>-->
-        </ul>
-      </div>
-      <div class="my_r">
-        <div class="my_bookshelf">
-          <div class="userBox cf">
-            <form method="post" action="./register.html" id="form2">
-              <div class="user_l">
-                <div></div>
-                <h3>小说章节内容填写</h3>
-                <ul class="log_list">
-                  <li><span id="LabErr"></span></li>
-                  <b>章节名：</b>
-                  <li>
-                    <input
-                      v-model="chapter.chapterName"
-                      type="text"
-                      id="bookIndex"
-                      name="bookIndex"
-                      class="s_input"
-                    />
-                  </li>
-                  <b>章节内容：</b>
-                  <li id="contentLi">
-                    <div class="ai-toolbar">
-                      <el-button
-                        v-for="btn in aiButtons"
-                        :key="btn.action"
-                        :type="btn.type"
-                        :disabled="!hasSelection || generating"
-                        @click="openDialog(btn.action)"
-                        size="small"
-                      >
-                        {{ btn.label }}
-                        <el-icon v-if="generating" class="is-loading">
-                          <Loading />
-                        </el-icon>
-                      </el-button>
+  <Navbar @themeChange="changeTheme" />
+  <div class="page-wrapper" :class="{'light-theme': !isDarkTheme}">
+    <!-- 左侧装饰元素 -->
+    <div class="side-decoration left-side">
+      <div class="tech-circle"></div>
+      <div class="tech-line-vertical"></div>
+      <div class="tech-dot dot1"></div>
+      <div class="tech-dot dot2"></div>
+      <div class="tech-dot dot3"></div>
+      <div class="tech-circuit"></div>
+    </div>
+
+    <div class="content-container">
+      <div class="main-container tech-theme" :class="{'light-theme': !isDarkTheme}">
+        <!-- 侧边导航 -->
+        <div class="layout-container">
+          <div class="sidebar">
+            <div class="sidebar-header">
+              <h3>作者管理</h3>
+              <div class="tech-line-short"></div>
+            </div>
+            <nav class="sidebar-nav">
+              <router-link
+                class="nav-item"
+                active-class="active"
+                :to="{'name':'authorBookList'}"
+              >
+                <i class="nav-icon">📚</i>
+                <span>小说管理</span>
+              </router-link>
+            </nav>
+          </div>
+
+          <!-- 主要内容区域 -->
+          <div class="main-content">
+            <div class="chapter-add-container">
+              <!-- 页面标题 -->
+              <div class="page-header">
+                <div class="header-content">
+                  <h1>发布新章节</h1>
+                  <div class="header-actions">
+                    <router-link
+                      :to="{ name: 'authorChapterList', query: { id: bookId } }"
+                      class="tech-button secondary"
+                    >
+                      <span>返回章节列表</span>
+                      <i class="button-icon">←</i>
+                    </router-link>
+                  </div>
+                </div>
+                <div class="tech-line-full"></div>
+              </div>
+
+              <!-- 章节表单 -->
+              <div class="chapter-form-card">
+                <form @submit.prevent="saveChapter">
+                  <!-- 章节名称输入 -->
+                  <div class="form-section">
+                    <div class="form-group">
+                      <label class="form-label">
+                        <i class="label-icon">📝</i>
+                        章节名称
+                      </label>
+                      <input
+                        v-model="chapter.chapterName"
+                        type="text"
+                        class="form-input"
+                        placeholder="请输入章节名称..."
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <!-- 章节内容输入 -->
+                  <div class="form-section">
+                    <div class="form-group">
+                      <label class="form-label">
+                        <i class="label-icon">✍️</i>
+                        章节内容
+                      </label>
+
+                      <!-- AI工具栏 -->
+                      <div class="ai-toolbar">
+                        <div class="ai-toolbar-header">
+                          <span class="ai-title">AI写作助手</span>
+                          <div class="ai-status" :class="{ 'generating': generating }">
+                            <span v-if="generating" class="status-text">AI生成中...</span>
+                            <span v-else class="status-text">{{ hasSelection ? '已选择文本' : '请选择文本' }}</span>
+                          </div>
+                        </div>
+                        <div class="ai-buttons">
+                          <el-button
+                            v-for="btn in aiButtons"
+                            :key="btn.action"
+                            :type="btn.type"
+                            :disabled="!hasSelection || generating"
+                            @click="openDialog(btn.action)"
+                            size="small"
+                            class="ai-btn"
+                          >
+                            {{ btn.label }}
+                            <el-icon v-if="generating" class="is-loading">
+                              <Loading />
+                            </el-icon>
+                          </el-button>
+                        </div>
+                      </div>
 
                       <!-- 参数输入对话框 -->
                       <el-dialog
                         v-model="dialogVisible"
                         :title="dialogTitle"
                         width="30%"
+                        class="ai-dialog"
                       >
                         <div
                           v-if="
@@ -87,108 +146,102 @@
                         </div>
 
                         <template #footer>
-                          <el-button @click="dialogVisible = false"
-                            >取消</el-button
-                          >
-                          <el-button type="primary" @click="confirmParams"
-                            >确定</el-button
-                          >
+                          <el-button @click="dialogVisible = false">取消</el-button>
+                          <el-button type="primary" @click="confirmParams">确定</el-button>
                         </template>
                       </el-dialog>
+
+                      <!-- 文本编辑器 -->
+                      <div class="editor-container">
+                        <textarea
+                          ref="editor"
+                          v-model="chapter.chapterContent"
+                          class="chapter-editor"
+                          placeholder="开始您的创作之旅..."
+                          rows="20"
+                          @mouseup="checkSelection"
+                          @keyup="checkSelection"
+                        ></textarea>
+                        <div class="editor-stats">
+                          <span class="word-count">字数：{{ chapter.chapterContent.length }}</span>
+                          <span class="selection-info" v-if="hasSelection">已选择：{{ selectedText.length }}字</span>
+                        </div>
+                      </div>
                     </div>
-                    <textarea
-                      ref="editor"
-                      v-model="chapter.chapterContent"
-                      name="bookContent"
-                      rows="30"
-                      cols="80"
-                      id="bookContent"
-                      class="textarea"
-                      @mouseup="checkSelection"
-                      @keyup="checkSelection"
-                    ></textarea>
-                  </li>
-                  <br />
+                  </div>
 
-                  <b>是否收费：</b>
-                  <li>
-                    <input
-                      v-model="chapter.isVip"
-                      type="radio"
-                      name="isVip"
-                      value="0"
-                      checked=""
-                    />免费
-                    <input
-                      v-model="chapter.isVip"
-                      type="radio"
-                      name="isVip"
-                      value="1"
-                    />收费
-                  </li>
+                  <!-- 收费设置 -->
+                  <div class="form-section">
+                    <div class="form-group">
+                      <label class="form-label">
+                        <i class="label-icon">💰</i>
+                        章节类型
+                      </label>
+                      <div class="radio-group">
+                        <label class="radio-item">
+                          <input
+                            v-model="chapter.isVip"
+                            type="radio"
+                            name="isVip"
+                            value="0"
+                            class="radio-input"
+                          />
+                          <span class="radio-custom"></span>
+                          <span class="radio-label">免费章节</span>
+                        </label>
+                        <label class="radio-item">
+                          <input
+                            v-model="chapter.isVip"
+                            type="radio"
+                            name="isVip"
+                            value="1"
+                            class="radio-input"
+                          />
+                          <span class="radio-custom"></span>
+                          <span class="radio-label">付费章节</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
 
-                  <li style="margin-top: 10px">
-                    <input
-                      @click="saveChapter"
-                      type="button"
-                      name="btnRegister"
-                      value="提交"
-                      id="btnRegister"
-                      class="btn_red"
-                    />
-                  </li>
-                </ul>
+                  <!-- 提交按钮 -->
+                  <div class="form-actions">
+                    <button type="submit" class="tech-button primary large">
+                      <span>发布章节</span>
+                      <i class="button-icon">🚀</i>
+                    </button>
+                  </div>
+                </form>
               </div>
-            </form>
+            </div>
           </div>
-          <!--<div id="divData" class="updateTable">
-                    <table cellpadding="0" cellspacing="0">
-                        <thead>
-                        <tr>
-
-                            <th class="name">
-                                爬虫源（已开启的爬虫源）
-                            </th>
-                            <th class="chapter">
-                                成功爬取数量（websocket实现）
-                            </th>
-                            <th class="time">
-                            目标爬取数量
-                            </th>
-                            <th class="goread">
-                                状态（正在运行，已停止）（一次只能运行一个爬虫源）
-                            </th>
-                            <th class="goread">
-                                操作（启动，停止）
-                            </th>
-                        </tr>
-                        </thead>
-                        <tbody id="bookShelfList">
-
-
-
-                        </tbody>
-                    </table>
-                    <div class="pageBox cf" id="shellPage">
-                    </div>
-                </div>-->
         </div>
       </div>
+    </div>
+
+    <!-- 右侧装饰元素 -->
+    <div class="side-decoration right-side">
+      <div class="tech-circle"></div>
+      <div class="tech-line-vertical"></div>
+      <div class="tech-dot dot1"></div>
+      <div class="tech-dot dot2"></div>
+      <div class="tech-dot dot3"></div>
+      <div class="tech-circuit"></div>
     </div>
   </div>
 </template>
 
 <script>
-import "@/assets/styles/book.css";
 import { reactive, toRefs, computed, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { ElMessage} from "element-plus";
 import { publishChapter, aiGenerate } from "@/api/author";
-import AuthorHeader from "@/components/author/Header.vue";
+import Navbar from "@/components/common/Navbar.vue";
+
 export default {
   name: "authorChapterAdd",
   components: {
-    AuthorHeader,
+    Navbar,
   },
   setup() {
     const route = useRoute();
@@ -201,6 +254,7 @@ export default {
       hasSelection: false,
       generating: false,
       selectedText: "",
+      isDarkTheme: localStorage.getItem('theme') === 'light' ? false : true,
       aiButtons: [
         { label: "AI扩写", action: "expand", type: "primary" },
         { label: "AI缩写", action: "condense", type: "success" },
@@ -212,6 +266,11 @@ export default {
       ratio: 30,    // 默认扩写/缩写比例
       length: 200,  // 默认续写长度
     });
+
+    // 主题切换
+    const changeTheme = (isDark) => {
+      state.isDarkTheme = isDark;
+    };
 
     const dialogTitle = computed(() => {
       const map = {
@@ -262,16 +321,6 @@ export default {
       await handleAI(state.currentAction)
     }
 
-    const getActionName = (action) => {
-      return {
-        expand: `扩写（${state.ratio}%）`,
-        condense: `缩写（${state.ratio}%）`,
-        continue: `续写（${state.length}字）`,
-        polish: '润色'
-      }[action]
-    }
-
-
     const checkSelection = () => {
       const textarea = editor.value;
       if (textarea) {
@@ -292,7 +341,9 @@ export default {
             state.chapter.chapterContent += text.charAt(index);
             index++;
             // 自动滚动到底部
-            editor.scrollTop = editor.scrollHeight;
+            if (editor.value) {
+              editor.value.scrollTop = editor.value.scrollHeight;
+            }
           } else {
             clearInterval(typing);
             resolve();
@@ -302,7 +353,6 @@ export default {
     };
 
     const handleAI = async (action) => {    
-
       try {
         state.generating = true
         
@@ -318,7 +368,7 @@ export default {
           params.length = state.length
         }
 
-        const response = await aiGenerate(action,params)
+        const response = await aiGenerate(action, params)
 
         // 在原有内容后追加生成内容，并实现打字效果
         const newContent = `\n\n【AI生成内容】${response.data}`;
@@ -333,7 +383,6 @@ export default {
     };
 
     const saveChapter = async () => {
-      console.log("sate=========", state.chapter);
       if (!state.chapter.chapterName) {
         ElMessage.error("章节名不能为空！");
         return;
@@ -348,8 +397,13 @@ export default {
         return;
       }
 
-      await publishChapter(state.bookId, state.chapter);
-      router.replace({ name: "authorChapterList", query: { id: state.bookId } });
+      try {
+        await publishChapter(state.bookId, state.chapter);
+        ElMessage.success("章节发布成功！");
+        router.replace({ name: "authorChapterList", query: { id: state.bookId } });
+      } catch (error) {
+        ElMessage.error("发布失败：" + error.message);
+      }
     };
 
     return {
@@ -361,626 +415,732 @@ export default {
       dialogTitle,
       openDialog,
       confirmParams,
-      getActionName
+      changeTheme,
     };
   },
 };
 </script>
 
-<style>
-.el-pagination {
-  justify-content: center;
-}
-.el-pagination.is-background .el-pager li:not(.is-disabled).is-active {
-  background-color: #f80 !important;
-}
-.el-pagination {
-  --el-pagination-hover-color: #f80 !important;
-}
-</style>
-
 <style scoped>
-.redBtn {
-  padding: 5px;
-  border-radius: 20px;
-  border: 1px solid #f80;
-  background: #f80;
-  color: #fff;
-}
-a.redBtn:hover {
-  color: #fff;
-}
-
-.avatar-uploader .avatar {
-  width: 178px;
-  height: 178px;
-  display: block;
-}
-
-.avatar-uploader .el-upload {
-  border: 1px dashed var(--el-border-color);
-  border-radius: 6px;
-  cursor: pointer;
+/* 页面整体包装 */
+.page-wrapper {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+  background-color: #0a0a0a;
   position: relative;
-  overflow: hidden;
-  transition: var(--el-transition-duration-fast);
+  overflow-x: hidden;
+  transition: all 0.3s ease;
 }
 
-.avatar-uploader .el-upload:hover {
-  border-color: var(--el-color-primary);
+.page-wrapper.light-theme {
+  background-color: #f5f5f5;
 }
 
-.el-icon.avatar-uploader-icon {
-  font-size: 28px;
-  color: #8c939d;
-  width: 178px;
-  height: 178px;
-  text-align: center;
-}
-
-.updateTable .style a {
-  color: #999;
-}
-.updateTable .author a {
-  color: #999;
-  cursor: text;
-}
-.bind,
-.updateTable .style a:hover {
-  color: #f65167;
-}
-.userBox {
-  /*width: 998px; border: 1px solid #eaeaea;*/
-  margin: 0 auto 50px;
-  background: #fff;
-  border-radius: 6px;
-}
-.channelViewhistory .userBox {
+/* 内容容器 */
+.content-container {
+  flex: 1;
+  width: 100%;
+  max-width: 1400px;
   margin: 0 auto;
 }
-.user_l {
-  width: 350px;
-  float: left;
-  padding: 100px 124px;
+
+/* 侧边装饰 - 与BookList页面保持一致 */
+.side-decoration {
+  width: 80px;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  pointer-events: none;
 }
-.user_l h3 {
-  font-size: 23px;
-  font-weight: normal;
-  line-height: 1;
-  text-align: center;
+
+.left-side {
+  left: 0;
+  border-right: 1px solid rgba(33, 150, 243, 0.1);
 }
-.user_l #LabErr {
-  color: #ff4040;
-  display: block;
+
+.right-side {
+  right: 0;
+  border-left: 1px solid rgba(33, 150, 243, 0.1);
+}
+
+.light-theme .left-side {
+  border-right: 1px solid rgba(33, 150, 243, 0.1);
+}
+
+.light-theme .right-side {
+  border-left: 1px solid rgba(33, 150, 243, 0.1);
+}
+
+/* 科技风装饰元素 */
+.tech-circle {
+  width: 40px;
   height: 40px;
-  line-height: 40px;
-  text-align: center;
-  font-size: 14px;
+  border: 1px solid rgba(33, 150, 243, 0.5);
+  border-radius: 50%;
+  position: absolute;
+  top: 100px;
+  left: 20px;
+  animation: pulsate 4s infinite;
 }
-.user_l .log_list {
-  width: 350px;
+
+.right-side .tech-circle {
+  left: unset;
+  right: 20px;
 }
-.user_l .s_input {
-  margin-bottom: 25px;
-  font-size: 14px;
+
+.tech-line-vertical {
+  width: 1px;
+  height: 180px;
+  background: linear-gradient(to bottom, rgba(33, 150, 243, 0.5), transparent);
+  position: absolute;
+  top: 150px;
+  left: 40px;
 }
-.s_input {
-  width: 348px;
-  height: 38px;
-  line-height: 38px\9;
-  vertical-align: middle;
-  border: 1px solid #ddd;
-  border-radius: 2px;
+
+.right-side .tech-line-vertical {
+  left: unset;
+  right: 40px;
+  background: linear-gradient(to bottom, rgba(128, 0, 128, 0.5), transparent);
 }
-.icon_name,
-.icon_key,
-.icon_code {
-  width: 312px;
-  padding-left: 36px;
+
+.tech-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #2196f3;
+  position: absolute;
 }
-.icon_key {
-  background-position: 13px -51px;
+
+.right-side .tech-dot {
+  background-color: #800080;
 }
-.icon_code {
-  background-position: 13px -117px;
-  width: 200px;
-  float: left;
+
+.dot1 {
+  top: 350px;
+  left: 25px;
+  animation: blink 2s infinite;
 }
-.code_pic {
-  height: 38px;
-  float: right;
+
+.dot2 {
+  top: 380px;
+  left: 45px;
+  animation: blink 3s infinite;
 }
-.btn_phone {
-  height: 40px;
-  width: 100px;
-  float: right;
-  cursor: pointer;
-  padding: 0;
-  text-align: center;
-  border-radius: 2px;
-  background: #dfdfdf;
+
+.dot3 {
+  top: 410px;
+  left: 25px;
+  animation: blink 2.5s infinite;
 }
-.log_code {
-  *padding-bottom: 25px;
+
+.right-side .dot1 {
+  left: unset;
+  right: 25px;
 }
-.user_l .btn_red {
+
+.right-side .dot2 {
+  left: unset;
+  right: 45px;
+}
+
+.right-side .dot3 {
+  left: unset;
+  right: 25px;
+}
+
+.tech-circuit {
+  width: 60px;
+  height: 200px;
+  position: absolute;
+  top: 450px;
+  left: 10px;
+  border-top: 1px solid rgba(33, 150, 243, 0.3);
+  border-right: 1px solid rgba(33, 150, 243, 0.3);
+  border-bottom: 1px solid rgba(33, 150, 243, 0.3);
+  border-top-right-radius: 20px;
+  border-bottom-right-radius: 20px;
+}
+
+.right-side .tech-circuit {
+  left: unset;
+  right: 10px;
+  border-right: none;
+  border-left: 1px solid rgba(128, 0, 128, 0.3);
+  border-top: 1px solid rgba(128, 0, 128, 0.3);
+  border-bottom: 1px solid rgba(128, 0, 128, 0.3);
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-top-left-radius: 20px;
+  border-bottom-left-radius: 20px;
+}
+
+/* 动画效果 */
+@keyframes pulsate {
+  0% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.7; }
+}
+
+@keyframes blink {
+  0% { opacity: 0.3; }
+  50% { opacity: 1; }
+  100% { opacity: 0.3; }
+}
+
+/* 主容器 */
+.main-container {
   width: 100%;
-  font-size: 19px;
-  padding: 12px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  color: #fff;
+  background-color: #121212;
+  transition: all 0.3s ease;
 }
-.autologin {
-  color: #999;
-  line-height: 1;
-  margin-bottom: 18px;
+
+.main-container.light-theme {
+  color: #333;
+  background-color: #ffffff;
 }
-.autologin em {
-  vertical-align: 2px;
-  margin-left: 4px;
+
+/* 布局容器 */
+.layout-container {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 30px;
+  min-height: 80vh;
 }
-.user_r {
-  width: 259px;
-  margin: 80px 0;
-  padding: 20px 70px;
-  border-left: 1px dotted #e3e3e3;
-  float: right;
-  text-align: center;
+
+/* 侧边栏 */
+.sidebar {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  height: fit-content;
+  position: sticky;
+  top: 20px;
 }
-.user_r .tit {
+
+.light-theme .sidebar {
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-header h3 {
+  margin: 0 0 10px 0;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.light-theme .sidebar-header h3 {
+  color: #333;
+}
+
+.tech-line-short {
+  height: 2px;
+  background: linear-gradient(90deg, rgba(33, 150, 243, 0.8), transparent);
+  margin-bottom: 20px;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  color: #ccc;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+}
+
+.light-theme .nav-item {
+  color: #666;
+}
+
+.nav-item:hover {
+  background: rgba(33, 150, 243, 0.1);
+  border-color: rgba(33, 150, 243, 0.3);
+  color: #2196f3;
+}
+
+.nav-item.active {
+  background: rgba(33, 150, 243, 0.2);
+  border-color: rgba(33, 150, 243, 0.5);
+  color: #2196f3;
+}
+
+.nav-icon {
+  margin-right: 10px;
   font-size: 16px;
-  line-height: 1;
-  padding: 6px 0 25px;
 }
-.user_r .btn_ora {
-  padding: 10px 34px;
+
+/* 主内容区 */
+.main-content {
+  min-height: 100%;
 }
-.fast_login {
-  padding: 60px 0 0;
+
+.chapter-add-container {
+  width: 100%;
+  animation: fadeIn 0.5s ease-out;
 }
-.fast_list {
-  text-align: center;
-  padding: 0.5rem;
+
+/* 页面标题 */
+.page-header {
+  margin-bottom: 30px;
 }
-.fast_list li {
-  display: inline-block;
-  *display: inline;
-  zoom: 1;
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
 }
-.fast_list li .img {
-  width: 48px;
-  height: 48px;
-  margin: 20px 0 5px;
+
+.header-content h1 {
+  margin: 0;
+  font-size: 28px;
+  color: #fff;
+  font-weight: 600;
 }
-.fast_list li a:hover {
-  opacity: 0.8;
-  filter: alpha(opacity=80);
-  -moz-opacity: 0.8;
+
+.light-theme .header-content h1 {
+  color: #333;
 }
-.fast_list li span {
-  display: block;
+
+.tech-line-full {
+  height: 2px;
+  background: linear-gradient(90deg, rgba(33, 150, 243, 0.8), rgba(128, 0, 128, 0.8), transparent);
 }
-.fast_list .login_qq {
-  margin: 0 42px;
+
+/* 科技按钮 */
+.tech-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 24px;
+  background: rgba(33, 150, 243, 0.1);
+  border: 1px solid rgba(33, 150, 243, 0.3);
+  border-radius: 8px;
+  color: #2196f3;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  outline: none;
+  font-size: 14px;
 }
-.fast_list .login_wb a {
-  color: #f55c5b;
+
+.tech-button:hover {
+  background: rgba(33, 150, 243, 0.2);
+  border-color: rgba(33, 150, 243, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(33, 150, 243, 0.3);
 }
-.fast_list .login_qq a {
-  color: #51b7ff;
+
+.tech-button.primary {
+  background: linear-gradient(135deg, #2196f3, #1976d2);
+  color: white;
+  border-color: #2196f3;
 }
-.fast_list .login_wx a {
-  color: #66d65e;
+
+.tech-button.primary:hover {
+  background: linear-gradient(135deg, #1976d2, #1565c0);
+  box-shadow: 0 8px 20px rgba(33, 150, 243, 0.4);
 }
-.fast_tit {
+
+.tech-button.secondary {
+  background: rgba(128, 0, 128, 0.1);
+  border-color: rgba(128, 0, 128, 0.3);
+  color: #800080;
+}
+
+.tech-button.secondary:hover {
+  background: rgba(128, 0, 128, 0.2);
+  border-color: rgba(128, 0, 128, 0.5);
+  box-shadow: 0 8px 20px rgba(128, 0, 128, 0.3);
+}
+
+.tech-button.large {
+  padding: 15px 30px;
+  font-size: 16px;
+}
+
+.button-icon {
+  margin-left: 8px;
+  font-style: normal;
+}
+
+/* 表单卡片 */
+.chapter-form-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 30px;
+  backdrop-filter: blur(10px);
   position: relative;
-  overflow: hidden;
 }
-.fast_tit .lines {
+
+.light-theme .chapter-form-card {
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.chapter-form-card::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, rgba(33, 150, 243, 0.1), rgba(128, 0, 128, 0.1));
+  border-radius: 18px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+}
+
+.chapter-form-card:hover::before {
+  opacity: 1;
+}
+
+/* 表单区域 */
+.form-section {
+  margin-bottom: 30px;
+}
+
+.form-group {
+  position: relative;
+}
+
+.form-label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #fff;
+}
+
+.light-theme .form-label {
+  color: #333;
+}
+
+.label-icon {
+  margin-right: 8px;
+  font-size: 18px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.light-theme .form-input {
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #333;
+}
+
+.form-input:focus {
+  border-color: rgba(33, 150, 243, 0.5);
+  box-shadow: 0 0 15px rgba(33, 150, 243, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.light-theme .form-input:focus {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.form-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.light-theme .form-input::placeholder {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+/* AI工具栏 */
+.ai-toolbar {
+  margin-bottom: 15px;
+  padding: 15px;
+  background: rgba(33, 150, 243, 0.05);
+  border: 1px solid rgba(33, 150, 243, 0.1);
+  border-radius: 8px;
+}
+
+.light-theme .ai-toolbar {
+  background: rgba(33, 150, 243, 0.02);
+  border: 1px solid rgba(33, 150, 243, 0.1);
+}
+
+.ai-toolbar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.ai-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #2196f3;
+}
+
+.ai-status {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  color: #ccc;
+}
+
+.light-theme .ai-status {
+  color: #666;
+}
+
+.ai-status.generating {
+  color: #f80;
+}
+
+.ai-status.generating::before {
+  content: '⚡';
+  margin-right: 5px;
+  animation: spin 1s linear infinite;
+}
+
+.ai-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ai-btn {
+  border-radius: 6px;
+  font-size: 12px;
+  padding: 6px 12px;
+}
+
+/* 编辑器容器 */
+.editor-container {
+  position: relative;
+}
+
+.chapter-editor {
+  width: 100%;
+  min-height: 400px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #fff;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  resize: vertical;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.light-theme .chapter-editor {
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #333;
+}
+
+.chapter-editor:focus {
+  border-color: rgba(33, 150, 243, 0.5);
+  box-shadow: 0 0 15px rgba(33, 150, 243, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.light-theme .chapter-editor:focus {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.chapter-editor::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.light-theme .chapter-editor::placeholder {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.editor-stats {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 12px;
+  color: #ccc;
+}
+
+.light-theme .editor-stats {
+  color: #666;
+}
+
+.word-count {
+  color: #2196f3;
+}
+
+.selection-info {
+  color: #f80;
+}
+
+/* 单选按钮组 */
+.radio-group {
+  display: flex;
+  gap: 20px;
+}
+
+.radio-item {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.light-theme .radio-item {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.radio-item:hover {
+  background: rgba(33, 150, 243, 0.1);
+  border-color: rgba(33, 150, 243, 0.3);
+}
+
+.radio-input {
+  display: none;
+}
+
+.radio-custom {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  margin-right: 8px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.light-theme .radio-custom {
+  border-color: rgba(0, 0, 0, 0.3);
+}
+
+.radio-input:checked + .radio-custom {
+  border-color: #2196f3;
+  background: rgba(33, 150, 243, 0.1);
+}
+
+.radio-input:checked + .radio-custom::after {
+  content: '';
   position: absolute;
   top: 50%;
-  left: 0;
-  width: 100%;
-  height: 1px;
-  line-height: 1;
-  background: #eaeaea;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px;
+  height: 6px;
+  background: #2196f3;
+  border-radius: 50%;
 }
-.fast_tit .title {
-  background: #fff;
-  font-size: 16px;
-  padding: 3px 14px;
-  position: relative;
-  display: inline-block;
-  z-index: 999;
+
+.radio-label {
+  font-size: 14px;
+  color: #fff;
 }
-/*userinfo*/
-.my_l {
-  width: 198px;
-  float: left;
-  font-size: 13px;
+
+.light-theme .radio-label {
+  color: #333;
+}
+
+/* 表单操作区 */
+.form-actions {
+  display: flex;
+  justify-content: center;
   padding-top: 20px;
-}
-.my_l li a {
-  display: block;
-  height: 42px;
-  line-height: 42px;
-  padding-left: 62px;
-  border-left: 4px solid #fff;
-  margin-bottom: 5px;
-  color: #666;
-}
-.my_l li .on {
-  background-color: #fafafa;
-  border-left: 2px solid #f80;
-  color: #000;
-  border-radius: 0 2px 2px 0;
-}
-.my_l .link_1 {
-  background-position: 32px -188px;
-}
-.my_l .link_2 {
-  background-position: 32px -230px;
-}
-.my_l .link_3 {
-  background-position: 32px -272px;
-}
-.my_l .link_4 {
-  background-position: 32px -314px;
-}
-.my_l .link_5 {
-  background-position: 32px -356px;
-}
-.my_l .link_6 {
-  background-position: 32px -397px;
-}
-.my_l .link_7 {
-  background-position: 32px -440px;
-}
-.my_l .link_8 {
-  background-position: 32px -481px;
-}
-.my_r {
-  width: 739px;
-  padding: 0 30px 30px;
-  float: right;
-  border-left: 1px solid #efefef;
-  min-height: 470px;
-}
-.my_info {
-  padding: 30px 0 5px;
-}
-.user_big_head {
-  /*width:110px; height:110px; padding:4px; border:1px solid #eaeaea;*/
-  margin-right: 30px;
-  float: left;
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-}
-.my_r .my_name {
-  font-size: 18px;
-  line-height: 1;
-  padding: 5px 0 12px 0;
-}
-.my_r .s_input {
-  width: 318px;
-  padding: 0 10px;
-}
-.my_list li {
-  line-height: 28px;
-}
-.my_list li i,
-.my_list li em.red {
-  margin-right: 6px;
-}
-.my_list .binded {
-  color: #999;
-  margin-left: 6px;
-}
-.my_list .btn_link {
-  margin-left: 12px;
-}
-.mytab_list li {
-  line-height: 30px;
-  padding: 10px 0;
-  font-size: 14px;
-}
-.mytab_list li .tit {
-  width: 70px;
-  color: #aaa;
-  text-align: right;
-  display: inline-block;
-  margin-right: 18px;
-}
-.mytab_list .user_img {
-  width: 48px;
-  height: 48px;
-  vertical-align: middle;
-  border-radius: 50%;
-}
-.my_bookshelf .title {
-  padding: 20px 0 15px;
-  line-height: 30px;
-}
-.my_bookshelf h4 {
-  font-size: 14px;
-  color: #666;
-}
-.my_bookshelf h2 {
-  font-size: 18px;
-  font-weight: normal;
-}
-.updateTable {
-  width: 739px;
-  color: #999;
-}
-.updateTable table {
-  width: 100%;
-  margin-bottom: 14px;
-}
-.updateTable th,
-.updateTable td {
-  height: 40px;
-  line-height: 40px;
-  vertical-align: middle;
-  padding-left: 6px;
-  font-weight: normal;
-  text-align: left;
-}
-.updateTable th {
-  background: #f9f9f9;
-  color: #333;
-  border-top: 1px solid #eee;
-}
-.updateTable td {
-  height: 40px;
-  line-height: 40px;
-}
-.updateTable .style {
-  width: 80px;
-  padding-left: 10px;
-}
-.updateTable .name {
-  width: 178px;
-  padding-right: 10px;
-}
-.updateTable .name a,
-.updateTable .chapter a {
-  max-width: 168px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.updateTable .chapter {
-  padding-right: 5px;
-}
-.updateTable .chapter a {
-  max-width: 220px;
-  float: left;
-}
-.updateTable .author {
-  width: 72px;
-  text-align: left;
-}
-.updateTable .goread {
-  width: 80px;
-  text-align: center;
-}
-.updateTable .time {
-  width: 86px;
-}
-.updateTable .word {
-  width: 64px;
-  padding-right: 10px;
-  text-align: right;
-}
-.updateTable .rank {
-  width: 30px;
-  padding-right: 10px;
-  text-align: center;
-}
-.updateTable .name a,
-.updateTable .chapter a,
-.updateTable .author a {
-  height: 40px;
-  line-height: 40px;
-  display: inline-block;
-  overflow: hidden;
-}
-.updateTable tr:nth-child(2n) td {
-  background: #fafafa;
-}
-.dataTable {
-  width: 739px;
-}
-.dataTable table {
-  width: 100%;
-  margin-bottom: 14px;
-  border-collapse: collapse;
-}
-.dataTable th,
-.dataTable td {
-  height: 40px;
-  line-height: 40px;
-  vertical-align: middle;
-  padding: 0 10px;
-  font-weight: normal;
-  text-align: center;
-  border: 1px solid #eaeaea;
-}
-.dataTable th {
-  background: #f8f8f8;
-}
-.nodate {
-  border-top: 1px solid #eaeaea;
-  padding: 60px 0;
-}
-.viewhistoryBox {
-  /*padding: 0 30px 30px; */
-  padding: 0 20px 10px;
-}
-.viewhistoryBox .updateTable {
-  width: 100%;
-}
-/*.btn_gray, .btn_red, .btn_ora { font-size:14px; padding:8px 28px }*/
-.book_tit {
-  height: 48px;
-  line-height: 48px;
-  margin: 0 14px;
-  border-bottom: 1px solid #eaeaea;
-  overflow: hidden;
-}
-.book_tit .fl {
-  font-size: 14px;
-  color: #999;
-}
-.book_tit .fl h3 {
-  font-size: 18px;
-  color: #333;
-  font-weight: normal;
-  margin-right: 5px;
-  display: inline;
-}
-.book_tit .fr {
-  font-size: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.commentBar,
-.feedback_list {
-  border-top: 1px solid #eee;
-  margin-bottom: 15px;
-}
-/*.comment_list { padding: 16px 0; border-bottom: 1px solid #eee }
-.comment_list .user_head { width:54px; height:54px; border-radius:50%; float: left; margin-right: 14px }
-.comment_list .li_1 { overflow: hidden }
-.comment_list .user_name { color: #ed4259 }
-.comment_list .li_2 { padding:3px 0; color:#999 }
-.comment_list .li_3, .comment_list .li_4 { margin-left:68px }
-.comment_list .reply { padding-left: 12px }
-.comment_list .num { color: #ed4259; margin: 0 3px }
-.comment_list .li_4 { line-height:34px; padding-top:8px; margin-top:15px; border-top:1px solid #eaeaea }
-.comment_list .li_4 .more { background:#f7f7f7; border-radius:2px; color:#ed4259; text-align:center }*/
-.no_contet {
-  padding: 190px 0 40px;
-  text-align: center;
-  color: #999;
-  border-top: 1px solid #eee;
+.light-theme .form-actions {
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.comment_list {
-  padding: 20px 0;
-  border-bottom: 1px solid #eee;
-}
-.comment_list:last-child {
-  border: none;
-}
-.comment_list .user_heads {
-  /*width: 54px; height: 54px; float: left;*/
-  position: relative;
-  margin-right: 20px;
-}
-.comment_list .user_head {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: #f6f6f6;
-}
-.comment_list .user_heads span {
-  display: block;
-  margin: 0;
-  position: absolute;
-  left: 12px;
-  bottom: 0;
-}
-.comment_list ul {
-  /*width: 640px;*/
-  width: 660px;
-}
-.comment_list .li_0 {
-  font-family: "宋体";
-}
-.comment_list .li_0 strong {
-  font-size: 14px;
-  color: #f00;
-}
-.comment_list .li_1 {
-  overflow: hidden;
-}
-.comment_list .user_name {
-  color: #ed4259;
-}
-.comment_list .li_2 {
-  padding: 6px 0;
-}
-.comment_list .li_3 {
-  color: #999;
-}
-.comment_list .reply {
-  padding-left: 12px;
-}
-.comment_list .num {
-  color: #ed4259;
-  margin: 0 3px;
-}
-.comment_list .li_4 {
-  line-height: 34px;
-  padding-top: 8px;
-  margin-top: 15px;
-  border-top: 1px solid #eaeaea;
-}
-.pl_bar li {
-  display: block;
-}
-.pl_bar .name {
-  color: #666;
-  padding-top: 2px;
-  font-size: 14px;
-}
-.pl_bar .dec {
-  font-size: 14px;
-  line-height: 1.8;
-  padding: 12px 0;
-}
-.pl_bar .other {
-  line-height: 24px;
-  color: #999;
-  font-size: 13px;
-}
-.pl_bar .other a {
-  display: inline-block;
-  color: #999;
-}
-.pl_bar .reply {
-  padding-left: 22px;
-}
-/*.no_comment { padding: 70px 14px 115px; color: #CCCCCC; text-align: center; font-size: 14px; }*/
-.reply_bar {
-  background: #f9f9f9;
-  border: 1px solid #eee;
-  border-radius: 6px;
-  padding: 10px;
-  line-height: 1.8;
+/* AI对话框样式 */
+:deep(.ai-dialog) {
+  --el-dialog-bg-color: rgba(18, 18, 18, 0.95);
+  --el-dialog-border-color: rgba(255, 255, 255, 0.1);
+  --el-text-color-primary: #fff;
 }
 
-/* 新增AI工具栏样式 */
-.ai-toolbar {
-  margin-bottom: 10px;
-  width: 500px;
-}
-.ai-toolbar .el-button {
-  margin-right: 10px;
+.light-theme :deep(.ai-dialog) {
+  --el-dialog-bg-color: rgba(255, 255, 255, 0.95);
+  --el-dialog-border-color: rgba(0, 0, 0, 0.1);
+  --el-text-color-primary: #333;
 }
 
-.textarea {
-  position: relative;
-  font-family: "Microsoft YaHei", sans-serif;
-  line-height: 1.6;
-  padding: 10px;
+/* 动画效果 */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
-.ai-toolbar .el-input {
-  margin-bottom: 15px;
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-:deep(.el-dialog__body) {
-  padding: 20px;
+/* 响应式设计 */
+@media (max-width: 1100px) {
+  .side-decoration {
+    display: none;
+  }
+
+  .layout-container {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .sidebar {
+    position: static;
+    margin-bottom: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+
+  .ai-buttons {
+    flex-direction: column;
+  }
+
+  .radio-group {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .chapter-editor {
+    min-height: 300px;
+  }
 }
 </style>
