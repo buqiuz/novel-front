@@ -87,7 +87,6 @@
         />
       </div>
     </div>
-    <Footer />
   </div>
 </template>
 
@@ -97,15 +96,11 @@ import { reactive, toRefs, onMounted, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { searchBooks, listCategorys } from "@/api/book";
 import { addDay, dateFormat } from "@/utils";
-import Top from "@/components/common/Top";
 import Navbar from "@/components/common/Navbar";
-import Footer from "@/components/common/Footer";
 export default {
   name: "bookclass",
   components: {
-    Top,
     Navbar,
-    Footer,
   },
   setup() {
     const route = useRoute();
@@ -129,7 +124,7 @@ export default {
     onMounted(() => {
       const key = route.query.key;
       state.searchCondition.keyword = key;
-      state.searchCondition.pageSize = 10;
+      state.searchCondition.pageSize = 20;
       loadCategoryList(0);
     });
 
@@ -313,17 +308,19 @@ export default {
   background: transparent;
   border: 1px solid transparent;
   cursor: pointer;
+  font-weight: 400;
 }
 .bookclass-wrapper.light-theme .filter-group a {
   color: #444;
 }
 .filter-group a.on, .filter-group a:hover {
-  background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
-  color: #fff;
-  border: 1px solid #4facfe;
+  background: transparent;
+  color: #2196f3;
+  border: none;
+  font-weight: 700;
 }
 .bookclass-wrapper.light-theme .filter-group a.on, .bookclass-wrapper.light-theme .filter-group a:hover {
-  color: #fff;
+  color: #2196f3;
 }
 .booklist-header {
   margin-top: 40px;
@@ -337,6 +334,28 @@ export default {
 }
 .bookclass-wrapper.light-theme .booklist-table-wrapper {
   background: rgba(0,0,0,0.03);
+}
+
+/* 分页器样式美化，主色调蓝色 */
+::v-deep .el-pagination.is-background .el-pager li {
+  background: transparent;
+  color: #2196f3;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+::v-deep .el-pagination.is-background .el-pager li.active {
+  background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+  color: #fff;
+  font-weight: 700;
+}
+::v-deep .el-pagination.is-background .el-pager li:hover {
+  color: #2196f3;
+  background: rgba(33,150,243,0.08);
+}
+::v-deep .el-pagination.is-background .el-pager li.disabled {
+  color: #b0bec5;
+  background: transparent;
 }
 .booklist-table {
   width: 100%;
