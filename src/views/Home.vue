@@ -1,318 +1,342 @@
 <template>
   <Header />
-  <div class="main-container tech-theme">
-    <!-- 炫酷轮播图部分 -->
-    <div class="hero-carousel">
-      <div class="carousel-container">
-        <el-carousel
-          :interval="4000"
-          type="card"
-          height="400px"
-          indicator-position="outside"
-          arrow="always"
-          class="tech-carousel"
-        >
-          <el-carousel-item
-            v-for="(item, index) in sliderContent"
-            :key="index"
-          >
+  <div class="page-wrapper">
+    <!-- 左侧装饰元素 -->
+    <div class="side-decoration left-side">
+      <div class="tech-circle"></div>
+      <div class="tech-line-vertical"></div>
+      <div class="tech-dot dot1"></div>
+      <div class="tech-dot dot2"></div>
+      <div class="tech-dot dot3"></div>
+      <div class="tech-circuit"></div>
+    </div>
+
+    <div class="content-container">
+      <div class="main-container tech-theme">
+        <!-- 炫酷轮播图部分 -->
+        <div class="hero-carousel">
+          <div class="carousel-container">
+            <el-carousel
+              :interval="4000"
+              type="card"
+              height="400px"
+              indicator-position="outside"
+              arrow="always"
+              class="tech-carousel"
+            >
+              <el-carousel-item
+                v-for="(item, index) in sliderContent"
+                :key="index"
+              >
+                <div
+                  class="carousel-content"
+                  @click="bookDetail(item.bookId)"
+                >
+                  <div
+                    class="book-cover"
+                    :style="`background-image: url(${imgBaseUrl + item.picUrl})`"
+                  >
+                    <div class="gradient-overlay"></div>
+                    <div class="book-info">
+                      <h2 class="book-title">{{ item.bookName }}</h2>
+                      <p class="book-author">{{ item.authorName }}</p>
+                      <div class="tech-button">
+                        <span>立即阅读</span>
+                        <i class="el-icon-right"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </el-carousel-item>
+            </el-carousel>
+          </div>
+        </div>
+
+        <!-- 推荐书籍与顶部榜单 -->
+        <div class="featured-section">
+          <div class="section-header">
+            <div class="tech-line"></div>
+            <h2>精选推荐</h2>
+            <div class="tech-line"></div>
+          </div>
+
+          <div class="top-books-grid">
             <div
-              class="carousel-content"
-              @click="bookDetail(item.bookId)"
+              class="top-book featured"
+              v-if="topBooks1[0]"
+              @click="bookDetail(topBooks1[0].bookId)"
             >
               <div
                 class="book-cover"
-                :style="`background-image: url(${imgBaseUrl + item.picUrl})`"
+                :style="`background-image: url(${imgBaseUrl + topBooks1[0].picUrl})`"
               >
                 <div class="gradient-overlay"></div>
+              </div>
+              <div class="book-details">
+                <h3>{{ topBooks1[0].bookName }}</h3>
+                <p>{{ topBooks1[0].bookDesc }}</p>
+              </div>
+              <div class="tech-badge">推荐</div>
+            </div>
+
+            <div class="top-books-list">
+              <div
+                class="top-book-item"
+                v-for="(item, index) in topBooks1.slice(1, 5)"
+                :key="index"
+                @click="bookDetail(item.bookId)"
+              >
+                <span class="rank-num">{{ index + 1 }}</span>
+                <img
+                  :src="`${imgBaseUrl}` + `${item.picUrl}`"
+                  :alt="item.bookName"
+                  class="mini-cover"
+                />
+                <div class="mini-details">
+                  <h4>{{ item.bookName }}</h4>
+                  <p>{{ item.authorName }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 本周强推 - 带炫酷效果 -->
+        <div class="weekly-recommend">
+          <div class="section-header">
+            <div class="tech-line"></div>
+            <h2>本周强推</h2>
+            <div class="tech-line"></div>
+          </div>
+
+          <div class="weekly-book-list">
+            <div
+              class="weekly-book"
+              v-for="(item, index) in weekcommend"
+              :key="index"
+              @click="bookDetail(item.bookId)"
+            >
+              <div class="glow-effect"></div>
+              <div class="book-content">
+                <img
+                  :src="`${imgBaseUrl}` + `${item.picUrl}`"
+                  :alt="item.bookName"
+                  class="book-image"
+                />
                 <div class="book-info">
-                  <h2 class="book-title">{{ item.bookName }}</h2>
-                  <p class="book-author">{{ item.authorName }}</p>
-                  <div class="tech-button">
-                    <span>立即阅读</span>
-                    <i class="el-icon-right"></i>
+                  <h3>{{ item.bookName }}</h3>
+                  <p class="author">{{ item.authorName }}</p>
+                  <p class="desc" v-html="item.bookDesc.substring(0, 80) + '...'"></p>
+                  <div class="tech-tag">科技阅读</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 三列榜单展示 -->
+        <div class="ranking-section">
+          <div class="section-header">
+            <div class="tech-line"></div>
+            <h2>榜单中心</h2>
+            <div class="tech-line"></div>
+          </div>
+
+          <div class="rankings-grid">
+            <div class="ranking-column visit-rank">
+              <div class="rank-header">
+                <h3>点击榜单</h3>
+                <router-link
+                  :to="{ name: 'bookRank' }"
+                  class="view-more"
+                  >查看全部</router-link
+                >
+              </div>
+              <div class="rank-list">
+                <div
+                  class="rank-item"
+                  v-for="(item, index) in visitBooks"
+                  :key="index"
+                  @click="bookDetail(item.id)"
+                >
+                  <span
+                    class="rank-num"
+                    :class="{'top-rank': index < 3}"
+                    >{{ index + 1 }}</span
+                  >
+                  <img
+                    :src="`${imgBaseUrl}` + `${item.picUrl}`"
+                    :alt="item.bookName"
+                    class="rank-cover"
+                  />
+                  <div class="rank-info">
+                    <h4>{{ item.bookName }}</h4>
+                    <p>{{ item.authorName }}</p>
                   </div>
                 </div>
               </div>
             </div>
-          </el-carousel-item>
-        </el-carousel>
-      </div>
-    </div>
 
-    <!-- 推荐书籍与顶部榜单 -->
-    <div class="featured-section">
-      <div class="section-header">
-        <div class="tech-line"></div>
-        <h2>精选推荐</h2>
-        <div class="tech-line"></div>
-      </div>
-
-      <div class="top-books-grid">
-        <div
-          class="top-book featured"
-          v-if="topBooks1[0]"
-          @click="bookDetail(topBooks1[0].bookId)"
-        >
-          <div
-            class="book-cover"
-            :style="`background-image: url(${imgBaseUrl + topBooks1[0].picUrl})`"
-          >
-            <div class="gradient-overlay"></div>
-          </div>
-          <div class="book-details">
-            <h3>{{ topBooks1[0].bookName }}</h3>
-            <p>{{ topBooks1[0].bookDesc }}</p>
-          </div>
-          <div class="tech-badge">推荐</div>
-        </div>
-
-        <div class="top-books-list">
-          <div
-            class="top-book-item"
-            v-for="(item, index) in topBooks1.slice(1, 5)"
-            :key="index"
-            @click="bookDetail(item.bookId)"
-          >
-            <span class="rank-num">{{ index + 1 }}</span>
-            <img
-              :src="`${imgBaseUrl}` + `${item.picUrl}`"
-              :alt="item.bookName"
-              class="mini-cover"
-            />
-            <div class="mini-details">
-              <h4>{{ item.bookName }}</h4>
-              <p>{{ item.authorName }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 本周强推 - 带炫酷效果 -->
-    <div class="weekly-recommend">
-      <div class="section-header">
-        <div class="tech-line"></div>
-        <h2>本周强推</h2>
-        <div class="tech-line"></div>
-      </div>
-
-      <div class="weekly-book-list">
-        <div
-          class="weekly-book"
-          v-for="(item, index) in weekcommend"
-          :key="index"
-          @click="bookDetail(item.bookId)"
-        >
-          <div class="glow-effect"></div>
-          <div class="book-content">
-            <img
-              :src="`${imgBaseUrl}` + `${item.picUrl}`"
-              :alt="item.bookName"
-              class="book-image"
-            />
-            <div class="book-info">
-              <h3>{{ item.bookName }}</h3>
-              <p class="author">{{ item.authorName }}</p>
-              <p class="desc" v-html="item.bookDesc.substring(0, 80) + '...'"></p>
-              <div class="tech-tag">科技阅读</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 三列榜单展示 -->
-    <div class="ranking-section">
-      <div class="section-header">
-        <div class="tech-line"></div>
-        <h2>榜单中心</h2>
-        <div class="tech-line"></div>
-      </div>
-
-      <div class="rankings-grid">
-        <div class="ranking-column visit-rank">
-          <div class="rank-header">
-            <h3>点击榜单</h3>
-            <router-link
-              :to="{ name: 'bookRank' }"
-              class="view-more"
-              >查看全部</router-link
-            >
-          </div>
-          <div class="rank-list">
-            <div
-              class="rank-item"
-              v-for="(item, index) in visitBooks"
-              :key="index"
-              @click="bookDetail(item.id)"
-            >
-              <span
-                class="rank-num"
-                :class="{'top-rank': index < 3}"
-                >{{ index + 1 }}</span
-              >
-              <img
-                :src="`${imgBaseUrl}` + `${item.picUrl}`"
-                :alt="item.bookName"
-                class="rank-cover"
-              />
-              <div class="rank-info">
-                <h4>{{ item.bookName }}</h4>
-                <p>{{ item.authorName }}</p>
+            <div class="ranking-column newest-rank">
+              <div class="rank-header">
+                <h3>新书榜单</h3>
+                <router-link
+                  :to="{ name: 'bookRank' }"
+                  class="view-more"
+                  >查看全部</router-link
+                >
               </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="ranking-column newest-rank">
-          <div class="rank-header">
-            <h3>新书榜单</h3>
-            <router-link
-              :to="{ name: 'bookRank' }"
-              class="view-more"
-              >查看全部</router-link
-            >
-          </div>
-          <div class="rank-list">
-            <div
-              class="rank-item"
-              v-for="(item, index) in newestBooks"
-              :key="index"
-              @click="bookDetail(item.id)"
-            >
-              <span
-                class="rank-num"
-                :class="{'top-rank': index < 3}"
-                >{{ index + 1 }}</span
-              >
-              <img
-                :src="`${imgBaseUrl}` + `${item.picUrl}`"
-                :alt="item.bookName"
-                class="rank-cover"
-              />
-              <div class="rank-info">
-                <h4>{{ item.bookName }}</h4>
-                <p>{{ item.authorName }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="ranking-column update-rank">
-          <div class="rank-header">
-            <h3>更新榜单</h3>
-            <router-link
-              :to="{ name: 'bookRank' }"
-              class="view-more"
-              >查看全部</router-link
-            >
-          </div>
-          <div class="rank-list">
-            <div
-              class="rank-item"
-              v-for="(item, index) in updateBooks"
-              :key="index"
-              @click="bookDetail(item.id)"
-            >
-              <span
-                class="rank-num"
-                :class="{'top-rank': index < 3}"
-                >{{ index + 1 }}</span
-              >
-              <img
-                :src="`${imgBaseUrl}` + `${item.picUrl}`"
-                :alt="item.bookName"
-                class="rank-cover"
-              />
-              <div class="rank-info">
-                <h4>{{ item.bookName }}</h4>
-                <p>{{ item.lastChapterName }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 热门推荐 - 书籍卡片网格 -->
-    <div class="popular-section">
-      <div class="section-header">
-        <div class="tech-line"></div>
-        <h2>热门推荐</h2>
-        <div class="tech-line"></div>
-      </div>
-
-      <div class="book-cards-grid">
-        <div
-          class="book-card"
-          v-for="(item, index) in hotRecommend"
-          :key="index"
-          @click="bookDetail(item.bookId)"
-        >
-          <div class="card-image">
-            <img :src="`${imgBaseUrl}` + `${item.picUrl}`" :alt="item.bookName" />
-            <div class="hover-info">
-              <p v-html="item.bookDesc.substring(0, 100) + '...'"></p>
-              <div class="read-now">立即阅读</div>
-            </div>
-          </div>
-          <div class="card-content">
-            <h3>{{ item.bookName }}</h3>
-            <p>{{ item.authorName }}</p>
-            <div class="tech-tags">
-              <span class="tag">{{ item.categoryName }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 精品推荐 - 交互式展示 -->
-    <div class="premium-section">
-      <div class="section-header">
-        <div class="tech-line"></div>
-        <h2>精品推荐</h2>
-        <div class="tech-line"></div>
-      </div>
-
-      <div class="premium-showcase">
-        <el-carousel
-          :interval="5000"
-          indicator-position="none"
-          height="300px"
-          arrow="always"
-          class="premium-carousel"
-        >
-          <el-carousel-item
-            v-for="(item, index) in goodRecommend"
-            :key="index"
-          >
-            <div
-              class="premium-item"
-              @click="bookDetail(item.bookId)"
-            >
-              <div
-                class="premium-cover"
-                :style="`background-image: url(${imgBaseUrl + item.picUrl})`"
-              ></div>
-              <div class="premium-details">
-                <h3>{{ item.bookName }}</h3>
-                <p class="author">{{ item.authorName }}</p>
-                <p class="desc" v-html="item.bookDesc"></p>
-                <div class="tech-button">
-                  <span>阅读详情</span>
-                  <i class="el-icon-arrow-right"></i>
+              <div class="rank-list">
+                <div
+                  class="rank-item"
+                  v-for="(item, index) in newestBooks"
+                  :key="index"
+                  @click="bookDetail(item.id)"
+                >
+                  <span
+                    class="rank-num"
+                    :class="{'top-rank': index < 3}"
+                    >{{ index + 1 }}</span
+                  >
+                  <img
+                    :src="`${imgBaseUrl}` + `${item.picUrl}`"
+                    :alt="item.bookName"
+                    class="rank-cover"
+                  />
+                  <div class="rank-info">
+                    <h4>{{ item.bookName }}</h4>
+                    <p>{{ item.authorName }}</p>
+                  </div>
                 </div>
               </div>
             </div>
-          </el-carousel-item>
-        </el-carousel>
+
+            <div class="ranking-column update-rank">
+              <div class="rank-header">
+                <h3>更新榜单</h3>
+                <router-link
+                  :to="{ name: 'bookRank' }"
+                  class="view-more"
+                  >查看全部</router-link
+                >
+              </div>
+              <div class="rank-list">
+                <div
+                  class="rank-item"
+                  v-for="(item, index) in updateBooks"
+                  :key="index"
+                  @click="bookDetail(item.id)"
+                >
+                  <span
+                    class="rank-num"
+                    :class="{'top-rank': index < 3}"
+                    >{{ index + 1 }}</span
+                  >
+                  <img
+                    :src="`${imgBaseUrl}` + `${item.picUrl}`"
+                    :alt="item.bookName"
+                    class="rank-cover"
+                  />
+                  <div class="rank-info">
+                    <h4>{{ item.bookName }}</h4>
+                    <p>{{ item.lastChapterName }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 热门推荐 - 书籍卡片网格 -->
+        <div class="popular-section">
+          <div class="section-header">
+            <div class="tech-line"></div>
+            <h2>热门推荐</h2>
+            <div class="tech-line"></div>
+          </div>
+
+          <div class="book-cards-grid">
+            <div
+              class="book-card"
+              v-for="(item, index) in hotRecommend"
+              :key="index"
+              @click="bookDetail(item.bookId)"
+            >
+              <div class="card-image">
+                <img :src="`${imgBaseUrl}` + `${item.picUrl}`" :alt="item.bookName" />
+                <div class="hover-info">
+                  <p v-html="item.bookDesc.substring(0, 100) + '...'"></p>
+                  <div class="read-now">立即阅读</div>
+                </div>
+              </div>
+              <div class="card-content">
+                <h3>{{ item.bookName }}</h3>
+                <p>{{ item.authorName }}</p>
+                <div class="tech-tags">
+                  <span class="tag">{{ item.categoryName }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 精品推荐 - 交互式展示 -->
+        <div class="premium-section">
+          <div class="section-header">
+            <div class="tech-line"></div>
+            <h2>精品推荐</h2>
+            <div class="tech-line"></div>
+          </div>
+
+          <div class="premium-showcase">
+            <el-carousel
+              :interval="5000"
+              indicator-position="none"
+              height="300px"
+              arrow="always"
+              class="premium-carousel"
+            >
+              <el-carousel-item
+                v-for="(item, index) in goodRecommend"
+                :key="index"
+              >
+                <div
+                  class="premium-item"
+                  @click="bookDetail(item.bookId)"
+                >
+                  <div
+                    class="premium-cover"
+                    :style="`background-image: url(${imgBaseUrl + item.picUrl})`"
+                  ></div>
+                  <div class="premium-details">
+                    <h3>{{ item.bookName }}</h3>
+                    <p class="author">{{ item.authorName }}</p>
+                    <p class="desc" v-html="item.bookDesc"></p>
+                    <div class="tech-button">
+                      <span>阅读详情</span>
+                      <i class="el-icon-arrow-right"></i>
+                    </div>
+                  </div>
+                </div>
+              </el-carousel-item>
+            </el-carousel>
+          </div>
+        </div>
       </div>
+      <FriendLink />
+      <Footer />
+    </div>
+
+    <!-- 右侧装饰元素 -->
+    <div class="side-decoration right-side">
+      <div class="tech-circle"></div>
+      <div class="tech-line-vertical"></div>
+      <div class="tech-dot dot1"></div>
+      <div class="tech-dot dot2"></div>
+      <div class="tech-dot dot3"></div>
+      <div class="tech-circuit"></div>
     </div>
   </div>
-  <FriendLink />
-  <Footer />
 </template>
 
 <script>
@@ -423,55 +447,161 @@ export default {
 </script>
 
 <style scoped>
-.main-container {
+/* 页面整体包装 */
+.page-wrapper {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+  background-color: #0a0a0a;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* 内容容器 */
+.content-container {
+  flex: 1;
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
-  color: #fff;
-  background-color: #121212;
 }
 
-.tech-theme {
-  background-color: #121212;
-  background-image:
-    radial-gradient(circle at 25% 30%, rgba(4, 78, 144, 0.2) 0%, transparent 60%),
-    radial-gradient(circle at 75% 70%, rgba(128, 0, 128, 0.2) 0%, transparent 60%);
-  position: relative;
-  overflow: hidden;
-}
-
-.tech-theme::before {
-  content: '';
-  position: absolute;
+/* 侧边装饰 */
+.side-decoration {
+  width: 80px;
+  position: fixed;
   top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(33, 150, 243, 0.5), transparent);
+  bottom: 0;
   z-index: 1;
+  pointer-events: none;
 }
 
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 30px;
-  margin-top: 60px;
+.left-side {
+  left: 0;
+  border-right: 1px solid rgba(33, 150, 243, 0.1);
 }
 
-.section-header h2 {
-  font-size: 28px;
-  color: #fff;
-  margin: 0 20px;
-  font-weight: 600;
-  letter-spacing: 2px;
+.right-side {
+  right: 0;
+  border-left: 1px solid rgba(33, 150, 243, 0.1);
 }
 
-.tech-line {
-  height: 1px;
-  flex-grow: 1;
-  background: linear-gradient(90deg, transparent, rgba(33, 150, 243, 0.5), transparent);
+/* 科技风圆圈 */
+.tech-circle {
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(33, 150, 243, 0.5);
+  border-radius: 50%;
+  position: absolute;
+  top: 100px;
+  left: 20px;
+  animation: pulsate 4s infinite;
+}
+
+.right-side .tech-circle {
+  left: unset;
+  right: 20px;
+}
+
+/* 垂直线条 */
+.tech-line-vertical {
+  width: 1px;
+  height: 180px;
+  background: linear-gradient(to bottom, rgba(33, 150, 243, 0.5), transparent);
+  position: absolute;
+  top: 150px;
+  left: 40px;
+}
+
+.right-side .tech-line-vertical {
+  left: unset;
+  right: 40px;
+  background: linear-gradient(to bottom, rgba(128, 0, 128, 0.5), transparent);
+}
+
+/* 装饰点 */
+.tech-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #2196f3;
+  position: absolute;
+}
+
+.right-side .tech-dot {
+  background-color: #800080;
+}
+
+.dot1 {
+  top: 350px;
+  left: 25px;
+  animation: blink 2s infinite;
+}
+
+.dot2 {
+  top: 380px;
+  left: 45px;
+  animation: blink 3s infinite;
+}
+
+.dot3 {
+  top: 410px;
+  left: 25px;
+  animation: blink 2.5s infinite;
+}
+
+.right-side .dot1 {
+  left: unset;
+  right: 25px;
+}
+
+.right-side .dot2 {
+  left: unset;
+  right: 45px;
+}
+
+.right-side .dot3 {
+  left: unset;
+  right: 25px;
+}
+
+/* 电路图样式 */
+.tech-circuit {
+  width: 60px;
+  height: 200px;
+  position: absolute;
+  top: 450px;
+  left: 10px;
+  border-top: 1px solid rgba(33, 150, 243, 0.3);
+  border-right: 1px solid rgba(33, 150, 243, 0.3);
+  border-bottom: 1px solid rgba(33, 150, 243, 0.3);
+  border-top-right-radius: 20px;
+  border-bottom-right-radius: 20px;
+}
+
+.right-side .tech-circuit {
+  left: unset;
+  right: 10px;
+  border-right: none;
+  border-left: 1px solid rgba(128, 0, 128, 0.3);
+  border-top: 1px solid rgba(128, 0, 128, 0.3);
+  border-bottom: 1px solid rgba(128, 0, 128, 0.3);
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-top-left-radius: 20px;
+  border-bottom-left-radius: 20px;
+}
+
+/* 动画效果 */
+@keyframes pulsate {
+  0% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.7; }
+}
+
+@keyframes blink {
+  0% { opacity: 0.3; }
+  50% { opacity: 1; }
+  100% { opacity: 0.3; }
 }
 
 /* 炫酷轮播图样式 */
@@ -1035,43 +1165,53 @@ export default {
 }
 
 /* 响应式设计 */
-@media (max-width: 992px) {
-  .top-books-grid {
-    grid-template-columns: 1fr;
+@media (max-width: 1400px) {
+  .side-decoration {
+    width: 40px;
   }
 
-  .rankings-grid {
-    grid-template-columns: 1fr;
+  .tech-circle {
+    width: 30px;
+    height: 30px;
+    left: 5px;
   }
 
-  .premium-item {
-    flex-direction: column;
+  .right-side .tech-circle {
+    right: 5px;
   }
 
-  .premium-cover {
-    width: 100%;
-    height: 40%;
+  .tech-line-vertical {
+    left: 20px;
   }
 
-  .premium-details {
-    width: 100%;
-    height: 60%;
-    padding: 15px;
+  .right-side .tech-line-vertical {
+    right: 20px;
+  }
+
+  .tech-circuit {
+    width: 30px;
+    left: 5px;
+  }
+
+  .right-side .tech-circuit {
+    right: 5px;
   }
 }
 
-@media (max-width: 576px) {
-  .book-cards-grid {
-    grid-template-columns: repeat(2, 1fr);
+@media (max-width: 1100px) {
+  .side-decoration {
+    display: none;
   }
+}
 
-  .weekly-book-list {
-    grid-template-columns: 1fr;
-  }
-
-  .section-header h2 {
-    font-size: 20px;
-  }
+/* 保留原有样式 */
+.main-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  color: #fff;
+  background-color: #121212;
 }
 </style>
 
