@@ -7,34 +7,49 @@
       <div class="my_r">
         <div class="my_bookshelf">
           <div class="title cf">
-            <h2 class="fl">流水信息</h2>
+            <h2 class="fl">我的书架</h2>
             <div class="fr"></div>
           </div>
           <div class="bookComment">
-            <div v-if="total == 0" class="no_contet no_record" >
-              您还没有使用或获取过书币哦！
+            <div v-if="total == 0" class="no_contet no_book" >
+              您还没有收藏过书籍哦！
             </div>
             <!-- 列表展示 -->
             <div v-else class="dataTable">
               <table>
                 <thead>
                 <tr>
-                  <th>操作时间</th>
-                  <th>描述</th>
-                  <th>余额变动</th>
+                  <th>最后阅读时间</th>
+                  <th>书名</th>
+                  <th>章节名</th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr v-for="(log, index) in walletLogs" :key="log.id || `empty-${index}`">
+                <tr v-for="(log, index) in bookshelf" :key="log.id || `empty-${index}`">
                   <td v-if="log.empty"></td>
-                  <td v-else>{{ formatDate(log.createdAt) }}</td>
+                  <td v-else>{{ formatDate(log.updateTime) }}</td>
 
                   <td v-if="log.empty"></td>
-                  <td v-else>{{ log.subject }}</td>
+                  <td v-else>
+                    <router-link
+                        :to="{ name: 'book', params: { id: log.bookId } }"
+                        class="book-name-link"
+                    >
+                      {{ log.bookName }}
+                    </router-link>
+                  </td>
 
                   <td v-if="log.empty"></td>
-                  <td v-else :class="{'text-red': log.amount.startsWith('-'),'text-green': !log.amount.startsWith('-')}">
-                    {{ formatAmount(log.amount) }}
+                  <td v-else>
+                    <router-link
+                        :to="{
+                          name: 'book',
+                          params: { id: log.bookId + '/' + log.preContentId }
+                        }"
+                        class="chapter-name-link"
+                    >
+                      {{ log.preChapterName }}
+                    </router-link>
                   </td>
                 </tr>
                 </tbody>
@@ -62,15 +77,14 @@
 <script>
 import "@/assets/styles/user.css";
 import man from "@/assets/images/man.png";
-import { getWalletLog } from '@/api/payment'
+import { listBookshelf } from '@/api/user'
 import { reactive, toRefs, onMounted, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import Header from "@/components/common/Header";
 import Footer from "@/components/common/Footer";
 import UserMenu from "@/components/user/Menu";
-import {getUid} from "@/utils/auth";
 export default {
-  name: "userRecord",
+  name: "userBookshelf",
   components: {
     Header,
     Footer,
@@ -83,7 +97,7 @@ export default {
     const state = reactive({
       pageSize: 8,
       pageNum: 1,
-      walletLogs:[],
+      bookshelf:[],
       total: 0,
       baseUrl: process.env.VUE_APP_BASE_API_URL,
       imgBaseUrl: process.env.VUE_APP_BASE_IMG_URL,
@@ -98,36 +112,36 @@ export default {
     };
     const handlePageChange = (pageNum) => {
       state.pageNum = pageNum;
-      loadWalletLog(); // 重新加载当前页数据
+      loadBookshelf(); // 重新加载当前页数据
     };
-    const loadWalletLog = async () => {
+    const loadBookshelf = async () => {
       const params={
-        userId:Number(getUid()),
         pageNum:state.pageNum,
         pageSize:state.pageSize
       }
       try{
-        const res = await getWalletLog(params);
+        const res = await listBookshelf(params);
+        console.log('获取书架信息成功', res);
         if(res.ok){
           state.total = Number(res.data.total);
           // 填充空数据
-          const logs = res.data.walletLogs || [];
-          const remaining = state.pageSize - logs.length;
+          const bookshelf = res.data.list || [];
+          const remaining = state.pageSize - bookshelf.length;
 
           if (remaining > 0) {
             for (let i = 0; i < remaining; i++) {
-              logs.push({ empty: true }); // 使用 empty 标记为空行
+              bookshelf.push({ empty: true }); // 使用 empty 标记为空行
             }
           }
 
-          state.walletLogs = logs;
+          state.bookshelf = bookshelf;
         }
       }catch (err){
-        console.error('获取流水信息失败', err);
+        console.error('获取书架信息失败', err);
       }
     };
     onMounted(async () => {
-      await loadWalletLog();
+      await loadBookshelf();
     });
 
     return {
@@ -142,11 +156,19 @@ export default {
 </script>
 
 <style scoped>
-.text-red {
-  color: red;
+.book-name-link {
+  color: #333;
+  text-decoration: none;
+  font-size: 15px;     /* 加大字体 */
+  font-weight: bold;   /* 加粗显示 */
 }
-.text-green {
-  color: green;
+
+.book-name-link:hover {
+  color: #f80;
+}
+
+.chapter-name-link:hover {
+  color: #f80;
 }
 .el-pagination {
   justify-content: center;
