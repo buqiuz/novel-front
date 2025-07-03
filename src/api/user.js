@@ -43,3 +43,19 @@ export function deleteUser() {
 export function listHistory(params) {
     return request.get('/front/user/read_history', { params });
 }
+
+export function listBookshelf(params){
+    return request.get('/front/user/bookshelf', { params });
+}
+
+export function addBookshelf(params) {
+    return request.post(`/front/user/addBookshelf?bookId=${params.bookId}&preContentId=${params.preContentId}`);
+}
+
+export function deleteBookshelf(params) {
+    return request.delete('/front/user/deleteBookshelf', { params });
+}
+
+export function isInBookshelf(params) {
+    return request.get('/front/user/isInBookshelf', { params });
+}

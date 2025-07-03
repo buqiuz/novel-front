@@ -120,7 +120,6 @@ export default {
       }
       try{
         const res = await listHistory(params);
-        console.log('获取阅读历史记录成功', res);
         if(res.ok){
           state.total = Number(res.data.total);
           // 填充空数据
