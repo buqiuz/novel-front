@@ -74,14 +74,13 @@ import { getWalletLog } from '@/api/payment'
 import { reactive, toRefs, onMounted, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import Navbar from "@/components/common/Navbar";
-import Footer from "@/components/common/Footer";
 import UserMenu from "@/components/user/Menu";
 import {getUid} from "@/utils/auth";
 export default {
   name: "userRecord",
   components: {
     Navbar,
-    Footer,
+
     UserMenu
   },
   setup() {

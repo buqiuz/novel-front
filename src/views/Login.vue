@@ -32,7 +32,6 @@
         </div>
       </div>
     </div>
-    <Footer />
     <!-- 右侧装饰元素 -->
     <div class="side-decoration right-side">
       <div class="tech-circle"></div>
@@ -52,10 +51,9 @@ import { ElMessage } from "element-plus";
 import { login } from "@/api/user";
 import { setToken, setNickName, setUid } from "@/utils/auth";
 import Navbar from "@/components/common/Navbar.vue";
-import Footer from "@/components/common/Footer.vue";
 export default {
   name: "Login",
-  components: { Navbar, Footer },
+  components: { Navbar },
   setup() {
     const route = useRoute();
     const router = useRouter();

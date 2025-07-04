@@ -29,16 +29,8 @@ const router = createRouter({
       name: 'login',
       component: () => import('@/views/Login')
     },
-    {
-      path: '/feadback',
-      name: 'feadback',
-      component: () => import('@/views/FeadBack')
-    },
-    {
-      path: '/news/:id',
-      name: 'news',
-      component: () => import('@/views/News')
-    },
+
+
     {
       path: '/bookclass',
       name: 'bookclass',

@@ -1,5 +1,5 @@
 <template>
-  <Header />
+  <Navbar @themeChange="changeTheme" />
   <div class="page-wrapper" :class="{'light-theme': !isDarkTheme}">
     <div class="side-decoration left-side">
       <div class="tech-circle"></div>
@@ -16,35 +16,23 @@
           <div class="user-content-card">
             <div class="user-content-title">我的书架</div>
             <div class="user-content-table">
-              <div v-if="total == 0" class="no_contet no_book">您还没有收藏过书籍哦！</div>
-              <div v-else class="dataTable">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>最后阅读时间</th>
-                      <th>书名</th>
-                      <th>章节名</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="(log, index) in bookshelf" :key="log.id || `empty-${index}`">
-                      <td v-if="log.empty"></td>
-                      <td v-else>{{ formatDate(log.updateTime) }}</td>
-                      <td v-if="log.empty"></td>
-                      <td v-else>
-                        <router-link :to="{ name: 'book', params: { id: log.bookId } }" class="book-name-link">
-                          {{ log.bookName }}
-                        </router-link>
-                      </td>
-                      <td v-if="log.empty"></td>
-                      <td v-else>
-                        <router-link :to="{ name: 'book', params: { id: log.bookId + '/' + log.preContentId } }" class="chapter-name-link">
-                          {{ log.preChapterName }}
-                        </router-link>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+              <div v-if="filteredBookshelf.length === 0" class="no_contet no_book">您还没有收藏过书籍哦！</div>
+              <div v-else class="book-cards-grid">
+                <div
+                  class="book-card"
+                  v-for="(log, index) in filteredBookshelf"
+                  :key="log.id || `empty-${index}`"
+                  @click="goBookDetail(log.bookId)"
+                >
+                  <div class="card-image">
+                    <img :src="`${imgBaseUrl}` + `${log.pic_url}`" :alt="log.bookName" />
+                  </div>
+                  <div class="card-content">
+                    <h3>{{ log.bookName }}</h3>
+                    <p>最后阅读：{{ formatDate(log.updateTime) }}</p>
+                    <p v-if="log.preChapterName">上次章节：{{ log.preChapterName }}</p>
+                  </div>
+                </div>
               </div>
               <el-pagination
                 v-if="total > 0"
@@ -59,7 +47,6 @@
           </div>
         </div>
       </div>
-      <Footer />
     </div>
     <div class="side-decoration right-side">
       <div class="tech-circle"></div>
@@ -76,16 +63,14 @@
 import "@/assets/styles/user.css";
 import man from "@/assets/images/man.png";
 import { listBookshelf } from '@/api/user'
-import { reactive, toRefs, onMounted } from "vue";
+import { reactive, toRefs, onMounted, computed, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import Header from "@/components/common/Header";
-import Footer from "@/components/common/Footer";
+import Navbar from "@/components/common/Navbar";
 import UserMenu from "@/components/user/Menu";
 export default {
   name: "userBookshelf",
   components: {
-    Header,
-    Footer,
+    Navbar,
     UserMenu
   },
   setup() {
@@ -99,8 +84,8 @@ export default {
       total: 0,
       baseUrl: process.env.VUE_APP_BASE_API_URL,
       imgBaseUrl: process.env.VUE_APP_BASE_IMG_URL,
-      isDarkTheme: localStorage.getItem('theme') === 'light' ? false : true,
     });
+    const isDarkTheme = ref(localStorage.getItem('theme') === 'light' ? false : true);
     const formatDate = (timeStr) => {
       return timeStr.replace('T', ' ');
     };
@@ -123,6 +108,7 @@ export default {
         console.log('获取书架信息成功', res);
         if(res.ok){
           state.total = Number(res.data.total);
+
           // 填充空数据
           const bookshelf = res.data.list || [];
           const remaining = state.pageSize - bookshelf.length;
@@ -139,19 +125,30 @@ export default {
         console.error('获取书架信息失败', err);
       }
     };
+    const goBookDetail = (bookId) => {
+      router.push({ name: 'book', params: { id: bookId } });
+    };
+    const filteredBookshelf = computed(() => state.bookshelf.filter(item => !item.empty));
+    const changeTheme = (isDark) => {
+      isDarkTheme.value = isDark;
+    };
     onMounted(async () => {
       await loadBookshelf();
       window.addEventListener('storage', () => {
-        state.isDarkTheme = localStorage.getItem('theme') === 'light' ? false : true;
+        isDarkTheme.value = localStorage.getItem('theme') === 'light' ? false : true;
       });
     });
 
     return {
       ...toRefs(state),
+      isDarkTheme,
+      changeTheme,
       man,
       formatDate,
       formatAmount,
-      handlePageChange
+      handlePageChange,
+      goBookDetail,
+      filteredBookshelf
     };
   },
 };
@@ -232,6 +229,55 @@ export default {
   letter-spacing: 1px;
 }
 .user-content-table { width: 100%; }
+.book-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  width: 100%;
+}
+.book-card {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+.book-card:hover {
+  transform: translateY(-4px);
+}
+.card-image {
+  width: 100%;
+  height: 280px; /* 增加封面高度，参考Home.vue热门推荐 */
+  overflow: hidden;
+  position: relative;
+}
+.card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+.card-image:hover img {
+  transform: scale(1.1);
+}
+.card-content {
+  padding: 16px;
+  text-align: left;
+}
+.card-content h3 {
+  font-size: 18px;
+  font-weight: 500;
+  margin: 0 0 8px 0;
+  color: #222; /* 黑色字体 */
+}
+.page-wrapper:not(.light-theme) .card-content h3 {
+  color: #fff;
+}
+.card-content p {
+  margin: 4px 0;
+  color: #666; /* 灰色字体 */
+  font-size: 14px;
+}
 .dataTable { width: 100%; max-height: 400px; overflow-y: auto; border: 1px solid #eaeaea; margin: 0 auto; background: transparent; }
 .dataTable table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 .dataTable th, .dataTable td { height: 40px; line-height: 40px; vertical-align: middle; padding: 0 10px; font-weight: normal; text-align: center; border: 1px solid #eaeaea; }

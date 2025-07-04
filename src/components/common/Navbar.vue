@@ -1,57 +1,4 @@
-<!-- <template>-->
-<!--  <div class="mainNav" id="mainNav">-->
-<!--    <div class="box_center cf">-->
-<!--      <ul class="nav" id="navModule">-->
-<!--        <li><router-link :to="{ name: 'home' }" replace>首页</router-link></li>-->
-<!--        <li>-->
-<!--          <router-link :to="{ name: 'bookclass' }" replace> 全部作品 </router-link>-->
-<!--        </li>-->
-<!--        <li><router-link :to="{ name: 'bookRank' }" replace>排行榜</router-link></li>-->
-<!--        <li><router-link :to="{ name: 'payment' }" replace>充值</router-link></li>-->
-<!--&lt;!&ndash;        <li class=""><a href="/pay/index.html">充值</a></li>&ndash;&gt;-->
-<!--        <li><a @click="goAuthor" href="javascript:void(0)">作家专区</a></li>-->
-<!--      </ul>-->
-<!--    </div>-->
-<!--  </div>-->
-<!--</template>-->
 
-<!--<script>-->
-<!--import { reactive, toRefs, onMounted } from "vue";-->
-<!--import { useRouter, useRoute } from "vue-router";-->
-<!--import { getToken} from "@/utils/auth";-->
-<!--import {getAuthorStatus} from "@/api/author"-->
-<!--export default {-->
-<!--  name: "Navbar",-->
-<!--  setup() {-->
-<!--    const route = useRoute();-->
-<!--    const router = useRouter();-->
-<!--    const goAuthor = async () => {-->
-<!--      if (!getToken()) {-->
-<!--        router.replace({-->
-<!--          name: "login",-->
-<!--        });-->
-<!--        return;-->
-<!--      }-->
-
-<!--      const {data} = await getAuthorStatus();-->
-<!--      if(data === null){-->
-<!--          router.replace({-->
-<!--          name: "authorRegister",-->
-<!--        });-->
-<!--        return;-->
-<!--      }-->
-
-<!--      let routeUrl = router.resolve({-->
-<!--        name: "authorBookList",-->
-<!--      });-->
-<!--      window.open(routeUrl.href, "_blank");-->
-<!--    };-->
-<!--    return {-->
-<!--      goAuthor,-->
-<!--    };-->
-<!--  },-->
-<!--};-->
-<!--</script>-->
 
 <template>
   <header class="tech-navbar" :class="{ 'light-theme': !isDarkTheme }">
@@ -116,7 +63,7 @@
               </div>
               <div class="dropdown-menu">
                 <router-link :to="{ name: 'userSetup' }" class="dropdown-item">个人设置</router-link>
-                <router-link :to="{ name: 'userRecord' }" class="dropdown-item">我的书架</router-link>
+                <router-link :to="{ name: 'userBookshelf' }" class="dropdown-item">我的书架</router-link>
                 <router-link :to="{ name: 'userComment' }" class="dropdown-item">我的评论</router-link>
                 <a @click="logout" href="javascript:void(0)" class="dropdown-item">退出登录</a>
               </div>

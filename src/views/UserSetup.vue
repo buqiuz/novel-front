@@ -60,7 +60,6 @@ import { useRouter, useRoute } from "vue-router";
 import { ElMessage } from "element-plus";
 import { deleteUser, getUserinfo, updateUserInfo } from "@/api/user";
 import Navbar from "@/components/common/Navbar";
-import Footer from "@/components/common/Footer";
 import UserMenu from "@/components/user/Menu";
 import { removeNickName, removeToken, removeUid } from "@/utils/auth";
 export default {

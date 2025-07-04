@@ -167,17 +167,9 @@
 import { reactive, toRefs, onMounted, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { ElMessage } from "element-plus";
-import { getImgVerifyCode } from "@/api/resource";
 import { register } from "@/api/author";
-import { setToken, setNickName, setUid } from "@/utils/auth";
-import Header from "@/components/common/Header";
-import Footer from "@/components/common/Footer";
 export default {
   name: "authorRegister",
-  components: {
-    Header,
-    Footer,
-  },
   setup() {
     const route = useRoute();
     const router = useRouter();

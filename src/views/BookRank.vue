@@ -37,7 +37,6 @@
         </table>
       </div>
     </div>
-    <Footer />
   </div>
 </template>
 
@@ -50,10 +49,9 @@ import {
   listNewestRankBooks,
 } from "@/api/book";
 import Navbar from "@/components/common/Navbar";
-import Footer from "@/components/common/Footer";
 export default {
   name: "bookRank",
-  components: { Navbar, Footer },
+  components: { Navbar},
   setup() {
     const route = useRoute();
     const router = useRouter();
