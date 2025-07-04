@@ -69,7 +69,7 @@
             <tr v-for="(item, index) in books" :key="index" @click="bookDetail(item.id)" class="book-row">
               <td><span class="rank-num">{{ index + 1 }}</span></td>
               <td><span class="category-tag">{{ item.categoryName }}</span></td>
-              <td><span class="book-title">{{ item.bookName }}</span></td>
+              <td><span class="book-title" v-html="item.bookName"></span></td>
               <td><span class="chapter-title">{{ item.lastChapterName }}</span></td>
               <td><span class="author-name">{{ item.authorName }}</span></td>
               <td><span class="word-count">{{ wordCountFormat(item.wordCount) }}</span></td>
