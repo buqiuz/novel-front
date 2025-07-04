@@ -641,10 +641,19 @@ export default {
         await router.replace({name: "login"});
       }
       try{
-        const res = await checkChapterUnlock({userId:userId, chapterId:chapterId});
-        if(!res.data){
-          document.body.style.overflow = 'hidden';
+        const res = await checkChapterUnlock({userId:userId,bookId:data.chapterInfo.bookId, chapterId:chapterId});
+        console.log("解锁结果：", res);
+        if(res.data==='1'){
+          console.log("位于书架中，自动解锁")
+          await handleBuyChapter();
+        }
+        else if(res.data==='2'){
+          console.log("不位于书架中，需要手动解锁")
+          document.body.style.overflow = 'hidden'; // 禁止滚动
           showUnlockDialog.value = true;
+        }
+        else{
+          console.log("已解锁")
         }
       } catch (error) {
         ElMessage.error("网络异常，请稍后再试");
@@ -934,7 +943,7 @@ export default {
 
 .content-container {
   width: 100%;
-  max-width: 800px;
+  max-width: 950px;
   padding: 20px;
 }
 
