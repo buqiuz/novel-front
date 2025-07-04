@@ -1,5 +1,5 @@
 <template>
-  <Header />
+  <Navbar @themeChange="changeTheme" />
   <div class="page-wrapper" :class="{'light-theme': !isDarkTheme}">
     <div class="side-decoration left-side">
       <div class="tech-circle"></div>
@@ -55,16 +55,16 @@
 import "@/assets/styles/user.css";
 import man from "@/assets/images/man.png";
 import { listComments } from '@/api/book'
-import { reactive, toRefs, onMounted, computed } from "vue";
+import { reactive, toRefs, onMounted, computed, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import Header from "@/components/common/Header";
+import Navbar from "@/components/common/Navbar";
 import Footer from "@/components/common/Footer";
 import UserMenu from "@/components/user/Menu";
 import {getUid} from "@/utils/auth";
 export default {
   name: "userComment",
   components: {
-    Header,
+    Navbar,
     UserMenu
   },
   setup() {
@@ -77,8 +77,8 @@ export default {
       total: 0,
       baseUrl: process.env.VUE_APP_BASE_API_URL,
       imgBaseUrl: process.env.VUE_APP_BASE_IMG_URL,
-      isDarkTheme: localStorage.getItem('theme') === 'light' ? false : true,
     });
+    const isDarkTheme = ref(localStorage.getItem('theme') === 'light' ? false : true);
     const formatDate = (timeStr) => {
       return timeStr.replace('T', ' ');
     };
@@ -110,14 +110,16 @@ export default {
       }
     };
     const filteredComments = computed(() => state.userComments.filter(item => !item.empty));
+    const changeTheme = (isDark) => {
+      isDarkTheme.value = isDark;
+    };
     onMounted(async () => {
       await loadUserComments();
-      window.addEventListener('storage', () => {
-        state.isDarkTheme = localStorage.getItem('theme') === 'light' ? false : true;
-      });
     });
     return {
       ...toRefs(state),
+      isDarkTheme,
+      changeTheme,
       man,
       formatDate,
       handlePageChange,
@@ -249,6 +251,9 @@ export default {
   line-height: 1.7;
   word-break: break-all;
   padding-left: 2px;
+}
+.page-wrapper:not(.light-theme) .comment-content-modern {
+  color: #fff;
 }
 .el-pagination { justify-content: center; margin-top: 18px; }
 @media (max-width: 600px) { .main-container { padding: 10px; } .user-content-card { padding: 16px 4px; } }

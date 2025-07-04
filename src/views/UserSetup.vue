@@ -1,5 +1,5 @@
 <template>
-  <Header />
+  <Navbar @themeChange="changeTheme" />
   <div class="page-wrapper" :class="{'light-theme': !isDarkTheme}">
     <div class="side-decoration left-side">
       <div class="tech-circle"></div>
@@ -55,18 +55,18 @@
 <script>
 import "@/assets/styles/user.css";
 import man from "@/assets/images/man.png";
-import { reactive, toRefs, onMounted } from "vue";
+import { reactive, toRefs, ref, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { ElMessage } from "element-plus";
 import { deleteUser, getUserinfo, updateUserInfo } from "@/api/user";
-import Header from "@/components/common/Header";
+import Navbar from "@/components/common/Navbar";
 import Footer from "@/components/common/Footer";
 import UserMenu from "@/components/user/Menu";
 import { removeNickName, removeToken, removeUid } from "@/utils/auth";
 export default {
   name: "userSetup",
   components: {
-    Header,
+    Navbar,
     UserMenu,
   },
   setup() {
@@ -77,8 +77,11 @@ export default {
       nickName: "",
       baseUrl: process.env.VUE_APP_BASE_API_URL,
       imgBaseUrl: process.env.VUE_APP_BASE_IMG_URL,
-      isDarkTheme: localStorage.getItem('theme') === 'light' ? false : true,
     });
+    const isDarkTheme = ref(localStorage.getItem('theme') === 'light' ? false : true);
+    const changeTheme = (isDark) => {
+      isDarkTheme.value = isDark;
+    };
     const handleDeleteUser = async () => {
       try {
         const confirm = window.confirm("确认删除账号？删除后将无法恢复！");
@@ -101,10 +104,6 @@ export default {
       const { data } = await getUserinfo();
       state.userPhoto = data.userPhoto;
       state.nickName = data.nickName;
-      // 监听主题变化
-      window.addEventListener('storage', () => {
-        state.isDarkTheme = localStorage.getItem('theme') === 'light' ? false : true;
-      });
     });
     const beforeAvatarUpload = (rawFile) => {
       if (rawFile.type !== "image/jpeg") {
@@ -122,6 +121,8 @@ export default {
     };
     return {
       ...toRefs(state),
+      isDarkTheme,
+      changeTheme,
       man,
       beforeAvatarUpload,
       handleAvatarSuccess,

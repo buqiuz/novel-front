@@ -1,60 +1,54 @@
 <template>
-  <Header />
-
-  <div class="main box_center cf">
-    <div class="userBox cf">
-      <UserMenu />
-      <div class="my_r">
-        <div class="my_bookshelf">
-          <div class="title cf">
-            <h2 class="fl">历史记录</h2>
-            <div class="fr"></div>
-          </div>
-          <div class="bookComment">
-            <div v-if="total == 0" class="no_contet no_history" >
-              您还没有阅读过小说哦！
-            </div>
-            <!-- 列表展示 -->
-            <div v-else class="dataTable">
-              <table>
-                <thead>
-                <tr>
-                  <th>最后阅读时间</th>
-                  <th>书名</th>
-                  <th>章节名</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr v-for="(log, index) in readHistory" :key="log.id || `empty-${index}`">
-                  <td v-if="log.empty"></td>
-                  <td v-else>{{ formatDate(log.updateTime) }}</td>
-
-                  <td v-if="log.empty"></td>
-                  <td v-else>
-                    <router-link
-                        :to="{ name: 'book', params: { id: log.bookId } }"
-                        class="book-name-link"
-                    >
-                      {{ log.bookName }}
-                    </router-link>
-                  </td>
-
-                  <td v-if="log.empty"></td>
-                  <td v-else>
-                    <router-link
-                        :to="{ name: 'book', params: { id: log.bookId + '/' + log.preContentId } }"
-                        class="chapter-name-link"
-                    >
-                      {{ log.preChapterName }}
-                    </router-link>
-                  </td>
-                </tr>
-                </tbody>
-              </table>
-            </div>
-
-
-            <el-pagination
+  <Navbar @themeChange="changeTheme" />
+  <div class="page-wrapper" :class="{'light-theme': !isDarkTheme}">
+    <div class="side-decoration left-side">
+      <div class="tech-circle"></div>
+      <div class="tech-line-vertical"></div>
+      <div class="tech-dot dot1"></div>
+      <div class="tech-dot dot2"></div>
+      <div class="tech-dot dot3"></div>
+      <div class="tech-circuit"></div>
+    </div>
+    <div class="content-container">
+      <div class="main-container tech-theme user-setup-main" :class="{'light-theme': !isDarkTheme}">
+        <div class="user-setup-grid">
+          <UserMenu />
+          <div class="user-content-card">
+            <div class="user-content-title">历史记录</div>
+            <div class="user-history-list">
+              <div v-if="total === 0" class="no_contet no_history">您还没有阅读过小说哦！</div>
+              <div v-else>
+                <div class="dataTable">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>最后阅读时间</th>
+                        <th>书名</th>
+                        <th>章节名</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(log, index) in readHistory" :key="log.id || `empty-${index}`">
+                        <td v-if="log.empty"></td>
+                        <td v-else>{{ formatDate(log.updateTime) }}</td>
+                        <td v-if="log.empty"></td>
+                        <td v-else>
+                          <router-link :to="{ name: 'book', params: { id: log.bookId } }" class="book-name-link">
+                            {{ log.bookName }}
+                          </router-link>
+                        </td>
+                        <td v-if="log.empty"></td>
+                        <td v-else>
+                          <router-link :to="{ name: 'book', params: { id: log.bookId + '/' + log.preContentId } }" class="chapter-name-link">
+                            {{ log.preChapterName }}
+                          </router-link>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <el-pagination
                 v-if="total > 0"
                 layout="prev, pager, next"
                 :total="total"
@@ -62,13 +56,21 @@
                 :current-page="pageNum"
                 @current-change="handlePageChange"
                 background
-            />
+              />
+            </div>
           </div>
         </div>
       </div>
     </div>
+    <div class="side-decoration right-side">
+      <div class="tech-circle"></div>
+      <div class="tech-line-vertical"></div>
+      <div class="tech-dot dot1"></div>
+      <div class="tech-dot dot2"></div>
+      <div class="tech-dot dot3"></div>
+      <div class="tech-circuit"></div>
+    </div>
   </div>
-  <Footer />
 </template>
 
 <script>
@@ -77,21 +79,18 @@ import man from "@/assets/images/man.png";
 import { listHistory } from '@/api/user'
 import { reactive, toRefs, onMounted, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import Header from "@/components/common/Header";
-import Footer from "@/components/common/Footer";
+import Navbar from "@/components/common/Navbar";
 import UserMenu from "@/components/user/Menu";
 import {getUid} from "@/utils/auth";
 export default {
   name: "userHistory",
   components: {
-    Header,
-    Footer,
+    Navbar,
     UserMenu
   },
   setup() {
     const route = useRoute();
     const router = useRouter();
-
     const state = reactive({
       pageSize: 8,
       pageNum: 1,
@@ -100,21 +99,16 @@ export default {
       baseUrl: process.env.VUE_APP_BASE_API_URL,
       imgBaseUrl: process.env.VUE_APP_BASE_IMG_URL,
     });
+    const isDarkTheme = ref(localStorage.getItem('theme') === 'light' ? false : true);
     const formatDate = (timeStr) => {
       return timeStr.replace('T', ' ');
     };
-    const formatAmount = (amount) => {
-      const num = parseFloat(amount);
-      if (isNaN(num)) return amount;
-      return num >= 0 ? `+${amount}` : amount;
-    };
     const handlePageChange = (pageNum) => {
       state.pageNum = pageNum;
-      loadReadHistory(); // 重新加载当前页数据
+      loadReadHistory();
     };
     const loadReadHistory = async () => {
       const params={
-        // userId:Number(getUid()),
         pageNum:state.pageNum,
         pageSize:state.pageSize
       }
@@ -122,31 +116,31 @@ export default {
         const res = await listHistory(params);
         if(res.ok){
           state.total = Number(res.data.total);
-          // 填充空数据
           const history = res.data.list || [];
           const remaining = state.pageSize - history.length;
-
           if (remaining > 0) {
             for (let i = 0; i < remaining; i++) {
-              history.push({ empty: true }); // 使用 empty 标记为空行
+              history.push({ empty: true });
             }
           }
-
           state.readHistory = history;
         }
       }catch (err){
         console.error('获取流水信息失败', err);
       }
     };
+    const changeTheme = (isDark) => {
+      isDarkTheme.value = isDark;
+    };
     onMounted(async () => {
       await loadReadHistory();
     });
-
     return {
       ...toRefs(state),
+      isDarkTheme,
+      changeTheme,
       man,
       formatDate,
-      formatAmount,
       handlePageChange
     };
   },
@@ -154,452 +148,104 @@ export default {
 </script>
 
 <style scoped>
-.book-name-link {
-  color: #333;
-  text-decoration: none;
-  font-size: 15px;     /* 加大字体 */
-  font-weight: bold;   /* 加粗显示 */
-}
-
-.book-name-link:hover {
-  color: #f80;
-}
-
-/* 修改后的章节名样式 */
-.chapter-name-link:hover {
-  color: #f80;
-}
-.chapter-name {
-  max-width: 220px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 14px;
-  color: #333;
-}
-
-.el-pagination {
-  justify-content: center;
-}
-::v-deep .el-pagination .el-pager li.is-active {
-  background-color: #f80 !important;
-}
-.el-pagination {
-  --el-pagination-hover-color: #f80 !important;
-}
-.avatar-uploader .avatar {
-  width: 178px;
-  height: 178px;
-  display: block;
-}
-.avatar-uploader .avatar {
-  width: 178px;
-  height: 178px;
-  display: block;
-}
-
-.avatar-uploader .el-upload {
-  border: 1px dashed var(--el-border-color);
-  border-radius: 6px;
-  cursor: pointer;
+/* 参考UserComment.vue的样式，保持风格一致 */
+.page-wrapper {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+  background-color: #0a0a0a;
   position: relative;
-  overflow: hidden;
-  transition: var(--el-transition-duration-fast);
+  overflow-x: hidden;
+  transition: all 0.3s ease;
 }
-
-.avatar-uploader .el-upload:hover {
-  border-color: var(--el-color-primary);
+.page-wrapper.light-theme {
+  background-color: #f5f5f5;
 }
-
-.el-icon.avatar-uploader-icon {
-  font-size: 28px;
-  color: #8c939d;
-  width: 178px;
-  height: 178px;
-  text-align: center;
-}
-
-.updateTable .style a {
-  color: #999;
-}
-.updateTable .author a {
-  color: #999;
-  cursor: text;
-}
-.bind,
-.updateTable .style a:hover {
-  color: #f65167;
-}
-.userBox {
-  /*width: 998px; border: 1px solid #eaeaea;*/
-  margin: 0 auto 50px;
-  background: #fff;
-  border-radius: 6px;
-}
-.channelViewhistory .userBox {
+.content-container {
+  flex: 1;
+  width: 100%;
+  max-width: 1200px;
   margin: 0 auto;
 }
-.user_l {
-  width: 350px;
-  float: left;
-  padding: 100px 124px;
-}
-.user_l h3 {
-  font-size: 23px;
-  font-weight: normal;
-  line-height: 1;
-  text-align: center;
-}
-.user_l #LabErr {
-  color: #ff4040;
-  display: block;
-  height: 40px;
-  line-height: 40px;
-  text-align: center;
-  font-size: 14px;
-}
-.user_l .log_list {
-  width: 350px;
-}
-.user_l .s_input {
-  margin-bottom: 25px;
-  font-size: 14px;
-}
-.s_input {
-  width: 348px;
-  height: 38px;
-  line-height: 38px\9;
-  vertical-align: middle;
-  border: 1px solid #ddd;
-  border-radius: 2px;
-}
-.icon_name,
-.icon_key,
-.icon_code {
-  width: 312px;
-  padding-left: 36px;
-}
-.icon_key {
-  background-position: 13px -51px;
-}
-.icon_code {
-  background-position: 13px -117px;
-  width: 200px;
-  float: left;
-}
-.code_pic {
-  height: 38px;
-  float: right;
-}
-.btn_phone {
-  height: 40px;
-  width: 100px;
-  float: right;
-  cursor: pointer;
-  padding: 0;
-  text-align: center;
-  border-radius: 2px;
-  background: #dfdfdf;
-}
-.log_code {
-  *padding-bottom: 25px;
-}
-.user_l .btn_red {
-  width: 100%;
-  font-size: 19px;
-  padding: 12px;
-}
-.autologin {
-  color: #999;
-  line-height: 1;
-  margin-bottom: 18px;
-}
-.autologin em {
-  vertical-align: 2px;
-  margin-left: 4px;
-}
-.user_r {
-  width: 259px;
-  margin: 80px 0;
-  padding: 20px 70px;
-  border-left: 1px dotted #e3e3e3;
-  float: right;
-  text-align: center;
-}
-.user_r .tit {
-  font-size: 16px;
-  line-height: 1;
-  padding: 6px 0 25px;
-}
-.user_r .btn_ora {
-  padding: 10px 34px;
-}
-.fast_login {
-  padding: 60px 0 0;
-}
-.fast_list {
-  text-align: center;
-  padding: 0.5rem;
-}
-.fast_list li {
-  display: inline-block;
-  *display: inline;
-  zoom: 1;
-}
-.fast_list li .img {
-  width: 48px;
-  height: 48px;
-  margin: 20px 0 5px;
-}
-.fast_list li a:hover {
-  opacity: 0.8;
-  filter: alpha(opacity=80);
-  -moz-opacity: 0.8;
-}
-.fast_list li span {
-  display: block;
-}
-.fast_list .login_qq {
-  margin: 0 42px;
-}
-.fast_list .login_wb a {
-  color: #f55c5b;
-}
-.fast_list .login_qq a {
-  color: #51b7ff;
-}
-.fast_list .login_wx a {
-  color: #66d65e;
-}
-.fast_tit {
-  position: relative;
-  overflow: hidden;
-}
-.fast_tit .lines {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  width: 100%;
-  height: 1px;
-  line-height: 1;
-  background: #eaeaea;
-}
-.fast_tit .title {
-  background: #fff;
-  font-size: 16px;
-  padding: 3px 14px;
-  position: relative;
-  display: inline-block;
-  z-index: 999;
-}
-/*userinfo*/
-.my_l {
-  width: 198px;
-  float: left;
-  font-size: 13px;
-  padding-top: 20px;
-}
-.my_l li a {
-  display: block;
-  height: 42px;
-  line-height: 42px;
-  padding-left: 62px;
-  border-left: 4px solid #fff;
-  margin-bottom: 5px;
-  color: #666;
-}
-.my_l li .on {
-  background-color: #fafafa;
-  border-left: 2px solid #f80;
-  color: #000;
-  border-radius: 0 2px 2px 0;
-}
-.my_l .link_1 {
-  background-position: 32px -188px;
-}
-.my_l .link_2 {
-  background-position: 32px -230px;
-}
-.my_l .link_3 {
-  background-position: 32px -272px;
-}
-.my_l .link_4 {
-  background-position: 32px -314px;
-}
-.my_l .link_5 {
-  background-position: 32px -356px;
-}
-.my_l .link_6 {
-  background-position: 32px -397px;
-}
-.my_l .link_7 {
-  background-position: 32px -440px;
-}
-.my_l .link_8 {
-  background-position: 32px -481px;
-}
-.my_r {
-  width: 739px;
-  padding: 0 30px 30px;
-  float: right;
-  border-left: 1px solid #efefef;
-  min-height: 470px;
-}
-.my_info {
-  padding: 30px 0 5px;
-}
-.user_big_head {
-  /*width:110px; height:110px; padding:4px; border:1px solid #eaeaea;*/
-  margin-right: 30px;
-  float: left;
+.side-decoration {
   width: 80px;
-  height: 80px;
-  border-radius: 50%;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  pointer-events: none;
 }
-.my_r .my_name {
-  font-size: 18px;
-  line-height: 1;
-  padding: 5px 0 12px 0;
+.left-side { left: 0; border-right: 1px solid rgba(33, 150, 243, 0.1); }
+.right-side { right: 0; border-left: 1px solid rgba(33, 150, 243, 0.1); }
+.light-theme .left-side { border-right: 1px solid rgba(33, 150, 243, 0.1); }
+.light-theme .right-side { border-left: 1px solid rgba(33, 150, 243, 0.1); }
+.tech-circle { width: 40px; height: 40px; border: 1px solid rgba(33, 150, 243, 0.5); border-radius: 50%; position: absolute; top: 100px; left: 20px; animation: pulsate 4s infinite; }
+.right-side .tech-circle { left: unset; right: 20px; }
+.tech-line-vertical { width: 1px; height: 180px; background: linear-gradient(to bottom, rgba(33, 150, 243, 0.5), transparent); position: absolute; top: 150px; left: 40px; }
+.right-side .tech-line-vertical { left: unset; right: 40px; background: linear-gradient(to bottom, rgba(128, 0, 128, 0.5), transparent); }
+.tech-dot { width: 8px; height: 8px; border-radius: 50%; background-color: #2196f3; position: absolute; }
+.right-side .tech-dot { background-color: #800080; }
+.dot1 { top: 350px; left: 25px; animation: blink 2s infinite; }
+.dot2 { top: 380px; left: 45px; animation: blink 3s infinite; }
+.dot3 { top: 410px; left: 25px; animation: blink 2.5s infinite; }
+.right-side .dot1 { left: unset; right: 25px; }
+.right-side .dot2 { left: unset; right: 45px; }
+.right-side .dot3 { left: unset; right: 25px; }
+.tech-circuit { width: 60px; height: 200px; position: absolute; top: 450px; left: 10px; border-top: 1px solid rgba(33, 150, 243, 0.3); border-right: 1px solid rgba(33, 150, 243, 0.3); border-bottom: 1px solid rgba(33, 150, 243, 0.3); border-top-right-radius: 20px; border-bottom-right-radius: 20px; }
+.right-side .tech-circuit { left: unset; right: 10px; border-right: none; border-left: 1px solid rgba(128, 0, 128, 0.3); border-top: 1px solid rgba(128, 0, 128, 0.3); border-bottom: 1px solid rgba(128, 0, 128, 0.3); border-top-right-radius: 0; border-bottom-right-radius: 0; border-top-left-radius: 20px; border-bottom-left-radius: 20px; }
+@keyframes pulsate { 0% { transform: scale(1); opacity: 0.7; } 50% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(1); opacity: 0.7; } }
+@keyframes blink { 0% { opacity: 0.3; } 50% { opacity: 1; } 100% { opacity: 0.3; } }
+.main-container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 40px 20px; color: #fff; background-color: #121212; transition: all 0.3s ease; min-height: 600px; }
+.main-container.light-theme { color: #333; background-color: #ffffff; }
+.user-setup-grid { display: flex; gap: 40px; align-items: flex-start; }
+@media (max-width: 900px) { .user-setup-grid { flex-direction: column; align-items: center; } }
+.user-content-card {
+  flex: 1;
+  max-width: 700px;
+  background: rgba(0,0,0,0.18);
+  border-radius: 16px;
+  box-shadow: 0 6px 32px rgba(33,150,243,0.10), 0 1.5px 8px rgba(0,0,0,0.08);
+  padding: 36px 28px 32px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 1.5px solid rgba(33,150,243,0.10);
+  transition: background 0.3s, box-shadow 0.3s;
 }
-.my_r .s_input {
-  width: 318px;
-  padding: 0 10px;
+.light-theme .user-content-card {
+  background: rgba(33,150,243,0.03);
+  border: 1.5px solid rgba(33,150,243,0.08);
+  box-shadow: 0 6px 32px rgba(33,150,243,0.06), 0 1.5px 8px rgba(0,0,0,0.04);
 }
-.my_list li {
-  line-height: 28px;
+.user-content-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #2196f3;
+  margin-bottom: 24px;
+  letter-spacing: 1px;
 }
-.my_list li i,
-.my_list li em.red {
-  margin-right: 6px;
-}
-.my_list .binded {
-  color: #999;
-  margin-left: 6px;
-}
-.my_list .btn_link {
-  margin-left: 12px;
-}
-.mytab_list li {
-  line-height: 30px;
-  padding: 10px 0;
-  font-size: 14px;
-}
-.mytab_list li .tit {
-  width: 70px;
-  color: #aaa;
-  text-align: right;
-  display: inline-block;
-  margin-right: 18px;
-}
-.mytab_list .user_img {
-  width: 48px;
-  height: 48px;
-  vertical-align: middle;
-  border-radius: 50%;
-}
-.my_bookshelf .title {
-  padding: 20px 0 15px;
-  line-height: 30px;
-}
-.my_bookshelf h4 {
-  font-size: 14px;
-  color: #666;
-}
-.my_bookshelf h2 {
-  font-size: 18px;
-  font-weight: normal;
-}
-.updateTable {
-  width: 739px;
-  color: #999;
-}
-.updateTable table {
+.user-history-list {
   width: 100%;
-  margin-bottom: 14px;
-}
-.updateTable th,
-.updateTable td {
-  height: 40px;
-  line-height: 40px;
-  vertical-align: middle;
-  padding-left: 6px;
-  font-weight: normal;
-  text-align: left;
-}
-.updateTable th {
-  background: #f9f9f9;
-  color: #333;
-  border-top: 1px solid #eee;
-}
-.updateTable td {
-  height: 40px;
-  line-height: 40px;
-}
-.updateTable .style {
-  width: 80px;
-  padding-left: 10px;
-}
-.updateTable .name {
-  width: 178px;
-  padding-right: 10px;
-}
-.updateTable .name a,
-.updateTable .chapter a {
-  max-width: 168px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.updateTable .chapter {
-  padding-right: 5px;
-}
-.updateTable .chapter a {
-  max-width: 220px;
-  float: left;
-}
-.updateTable .author {
-  width: 72px;
-  text-align: left;
-}
-.updateTable .goread {
-  width: 80px;
-  text-align: center;
-}
-.updateTable .time {
-  width: 86px;
-}
-.updateTable .word {
-  width: 64px;
-  padding-right: 10px;
-  text-align: right;
-}
-.updateTable .rank {
-  width: 30px;
-  padding-right: 10px;
-  text-align: center;
-}
-.updateTable .name a,
-.updateTable .chapter a,
-.updateTable .author a {
-  height: 40px;
-  line-height: 40px;
-  display: inline-block;
-  overflow: hidden;
-}
-.updateTable tr:nth-child(2n) td {
-  background: #fafafa;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-height: 120px;
 }
 .dataTable {
-  width: 739px;
-  max-height: 400px; /* 固定最大高度 */
-  overflow-y: auto;   /* 超出时显示垂直滚动条 */
+  width: 100%;
+  max-height: 400px;
+  overflow-y: auto;
   border: 1px solid #eaeaea;
   margin: 0 auto;
+  background: transparent;
+}
+.page-wrapper:not(.light-theme) .dataTable {
+  background: #181818;
 }
 .dataTable table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed; /* 固定列宽 */
+  table-layout: fixed;
 }
 .dataTable th,
 .dataTable td {
@@ -614,155 +260,61 @@ export default {
 .dataTable th {
   background: #f8f8f8;
 }
-.nodate {
-  border-top: 1px solid #eaeaea;
-  padding: 60px 0;
+.page-wrapper:not(.light-theme) .dataTable th {
+  background: #222;
+  color: #fff;
 }
-.viewhistoryBox {
-  /*padding: 0 30px 30px; */
-  padding: 0 20px 10px;
+.page-wrapper:not(.light-theme) .dataTable td {
+  color: #fff;
 }
-.viewhistoryBox .updateTable {
-  width: 100%;
-}
-/*.btn_gray, .btn_red, .btn_ora { font-size:14px; padding:8px 28px }*/
-.book_tit {
-  height: 48px;
-  line-height: 48px;
-  margin: 0 14px;
-  border-bottom: 1px solid #eaeaea;
-  overflow: hidden;
-}
-.book_tit .fl {
-  font-size: 14px;
-  color: #999;
-}
-.book_tit .fl h3 {
-  font-size: 18px;
+.book-name-link {
   color: #333;
-  font-weight: normal;
-  margin-right: 5px;
-  display: inline;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: bold;
 }
-.book_tit .fr {
+.page-wrapper:not(.light-theme) .book-name-link {
+  color: #fff;
+}
+.book-name-link:hover {
+  color: #f80;
+}
+.chapter-name-link {
+  color: #333;
+}
+.page-wrapper:not(.light-theme) .chapter-name-link {
+  color: #fff;
+}
+.chapter-name-link:hover {
+  color: #f80;
+}
+.chapter-name {
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: 14px;
+  color: #333;
 }
-
-.commentBar,
-.feedback_list {
-  border-top: 1px solid #eee;
-  margin-bottom: 15px;
+.page-wrapper:not(.light-theme) .chapter-name {
+  color: #fff;
 }
-/*.comment_list { padding: 16px 0; border-bottom: 1px solid #eee }
-.comment_list .user_head { width:54px; height:54px; border-radius:50%; float: left; margin-right: 14px }
-.comment_list .li_1 { overflow: hidden }
-.comment_list .user_name { color: #ed4259 }
-.comment_list .li_2 { padding:3px 0; color:#999 }
-.comment_list .li_3, .comment_list .li_4 { margin-left:68px }
-.comment_list .reply { padding-left: 12px }
-.comment_list .num { color: #ed4259; margin: 0 3px }
-.comment_list .li_4 { line-height:34px; padding-top:8px; margin-top:15px; border-top:1px solid #eaeaea }
-.comment_list .li_4 .more { background:#f7f7f7; border-radius:2px; color:#ed4259; text-align:center }*/
+.el-pagination {
+  justify-content: center;
+  margin-top: 18px;
+}
+::v-deep .el-pagination .el-pager li.is-active {
+  background-color: #f80 !important;
+}
+.el-pagination {
+  --el-pagination-hover-color: #f80 !important;
+}
 .no_contet {
   padding: 190px 0 40px;
   text-align: center;
   color: #999;
   border-top: 1px solid #eee;
-  font-size: 14px; /* 增大默认字体 */
-}
-
-.comment_list {
-  padding: 20px 0;
-  border-bottom: 1px solid #eee;
-}
-.comment_list:last-child {
-  border: none;
-}
-.comment_list .user_heads {
-  /*width: 54px; height: 54px; float: left;*/
-  position: relative;
-  margin-right: 20px;
-}
-.comment_list .user_head {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: #f6f6f6;
-}
-.comment_list .user_heads span {
-  display: block;
-  margin: 0;
-  position: absolute;
-  left: 12px;
-  bottom: 0;
-}
-.comment_list ul {
-  /*width: 640px;*/
-  width: 660px;
-}
-.comment_list .li_0 {
-  font-family: "宋体";
-}
-.comment_list .li_0 strong {
-  font-size: 14px;
-  color: #f00;
-}
-.comment_list .li_1 {
-  overflow: hidden;
-}
-.comment_list .user_name {
-  color: #ed4259;
-}
-.comment_list .li_2 {
-  padding: 6px 0;
-}
-.comment_list .li_3 {
-  color: #999;
-}
-.comment_list .reply {
-  padding-left: 12px;
-}
-.comment_list .num {
-  color: #ed4259;
-  margin: 0 3px;
-}
-.comment_list .li_4 {
-  line-height: 34px;
-  padding-top: 8px;
-  margin-top: 15px;
-  border-top: 1px solid #eaeaea;
-}
-.pl_bar li {
-  display: block;
-}
-.pl_bar .name {
-  color: #666;
-  padding-top: 2px;
   font-size: 14px;
 }
-.pl_bar .dec {
-  font-size: 14px;
-  line-height: 1.8;
-  padding: 12px 0;
-}
-.pl_bar .other {
-  line-height: 24px;
-  color: #999;
-  font-size: 13px;
-}
-.pl_bar .other a {
-  display: inline-block;
-  color: #999;
-}
-.pl_bar .reply {
-  padding-left: 22px;
-}
-.reply_bar {
-  background: #f9f9f9;
-  border: 1px solid #eee;
-  border-radius: 6px;
-  padding: 10px;
-  line-height: 1.8;
-}
+@media (max-width: 600px) { .main-container { padding: 10px; } .user-content-card { padding: 16px 4px; } }
 </style>
-
