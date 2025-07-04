@@ -1,5 +1,5 @@
 <template>
-  <Header />
+  <Navbar />
   <div class="main box_center cf">
     <div class="nav_sub">
       
@@ -52,13 +52,11 @@ import "@/assets/styles/book.css";
 import { reactive, toRefs, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { getBookById, listChapters } from "@/api/book";
-import Header from "@/components/common/Header";
-import Footer from "@/components/common/Footer";
+import Navbar from "@/components/common/Navbar";
 export default {
   name: "chapterList",
   components: {
-    Header,
-    Footer,
+    Navbar,
   },
   setup() {
     const route = useRoute();
