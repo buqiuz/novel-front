@@ -132,19 +132,19 @@
         </div>
 
         <div class="settings-content">
-          <div class="setting-group">
-            <label class="setting-label">阅读主题</label>
-            <div class="theme-options">
-              <button
-                v-for="color in ['white', 'green', 'pink', 'yellow', 'gray', 'night']"
-                :key="color"
-                :class="['theme-btn', color, themeClass === getThemeClass(color) ? 'active' : '']"
-                @click="setTheme(color)"
-              >
-                {{ getThemeName(color) }}
-              </button>
-            </div>
-          </div>
+<!--          <div class="setting-group">-->
+<!--            <label class="setting-label">阅读主题</label>-->
+<!--            <div class="theme-options">-->
+<!--              <button-->
+<!--                v-for="color in ['white', 'green', 'pink', 'yellow', 'gray', 'night']"-->
+<!--                :key="color"-->
+<!--                :class="['theme-btn', color, themeClass === getThemeClass(color) ? 'active' : '']"-->
+<!--                @click="setTheme(color)"-->
+<!--              >-->
+<!--                {{ getThemeName(color) }}-->
+<!--              </button>-->
+<!--            </div>-->
+<!--          </div>-->
 
           <div class="setting-group">
             <label class="setting-label">字体设置</label>
