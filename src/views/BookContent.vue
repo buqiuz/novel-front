@@ -1,7 +1,6 @@
-yarn<template>
-  <div class="header">
-    <Top />
-  </div>
+<template>
+    <Navbar />
+
   <div id="showDetail" :class="themeClass">
     <div class="readBody cf">
       <div class="readMain cf">
@@ -168,8 +167,7 @@ import { reactive, toRefs, onMounted, onBeforeUnmount, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import {getBookContent, getPreChapterId, getNextChapterId, unlockChapter} from "@/api/book";
 import { ElMessage } from "element-plus";
-import Top from "@/components/common/Top";
-import Footer from "@/components/common/Footer";
+import Navbar from "@/components/common/Navbar";
 // 修改为
 import { getTTSStreamUrl, getTTSStreamWithPost } from "@/api/ai";
 import { getUid } from "@/utils/auth";
@@ -179,8 +177,7 @@ import { getCurrentInstance } from 'vue';
 export default {
   name: "bookContent",
   components: {
-    Top,
-    Footer,
+    Navbar,
   },
   setup() {
     const route = useRoute();

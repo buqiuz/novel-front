@@ -323,8 +323,6 @@
           </div>
         </div>
       </div>
-      <FriendLink />
-      <Footer />
     </div>
 
     <!-- 右侧装饰元素 -->
@@ -348,14 +346,12 @@ import { listNewestRankBooks } from "@/api/book";
 import { listUpdateRankBooks } from "@/api/book";
 import { ElMessage, ElLoading } from "element-plus";
 import Navbar from "@/components/common/Navbar";
-import Footer from "@/components/common/Footer";
-import FriendLink from "@/components/home/FriendLink";
+
 export default {
   name: "home",
   components: {
     Navbar,
-    FriendLink,
-    Footer,
+
   },
   setup() {
     const route = useRoute();

@@ -39,7 +39,6 @@
         </div>
       </div>
     </div>
-    <Footer />
     <div class="side-decoration right-side">
       <div class="tech-circle"></div>
       <div class="tech-line-vertical"></div>
@@ -53,7 +52,7 @@
 
 <script>
 import Navbar from '@/components/common/Navbar.vue';
-import Footer from '@/components/common/Footer.vue';
+
 import { reactive, toRefs, onMounted, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { ElMessage } from "element-plus";
@@ -62,7 +61,7 @@ import { register } from "@/api/user";
 import { setToken, setNickName, setUid } from "@/utils/auth";
 export default {
   name: "register",
-  components: { Navbar, Footer },
+  components: { Navbar },
   setup() {
     const route = useRoute();
     const router = useRouter();
